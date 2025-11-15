@@ -1,16 +1,30 @@
-import { Link } from "@heroui/link";
-import { Snippet } from "@heroui/snippet";
-import { Code } from "@heroui/code";
-import { button as buttonStyles } from "@heroui/theme";
+import React from 'react'
+import DashboardGrid from './_components/DashboardGrid'
+import DashboardStatsGrid from './_components/DashboardStatsGrid'
+import VendorsSection from './_components/VendorsSection'
 
-import { siteConfig } from "@/config/site";
-import { title, subtitle } from "@/components/primitives";
-import { GithubIcon } from "@/components/icons";
-
-export default function Home() {
+function page() {
   return (
-    <section>
-      <h1 className="text-center">Welcome to PALMODA-ADMIN-Website</h1>
+    <section className='bg-whitemin-h-screen px-4  md:px-8 py-6 w-full'>
+      <div className='flex items-center justify-between'>
+         <div>
+          <h1 className='text-black font-bold text-xl'>Vendor Management Dashboard</h1>
+        <p className='text-gray-500 text-[13px] my-2'>Comprehensive overview and management of vendor performance</p>
+         </div>
+         <div className='flex gap-3 items-center'>
+        <button
+        className='bg-inherit border uppercase border-black text-black py-[5px] px-[10px] w-fit text-sm'
+        >Review Queue</button>
+        <button
+        className='bg-black  text-white py-[5px] px-[10px] w-fit uppercase text-sm'
+        >New Applications</button>
+        </div>
+      </div>
+      <DashboardGrid />
+      <DashboardStatsGrid />
+      <VendorsSection />
     </section>
-  );
+  )
 }
+
+export default page
