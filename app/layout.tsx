@@ -6,11 +6,10 @@ import Sidebar from "./_components/SideBar";
 
 export const metadata: Metadata = {
   title: {
-    default: "Palmoda Merchant",
+    default: "Palmoda Admin Merchant",
     template: "%s | Scale Your Business on Palmoda",
   },
-  description:
-    "Join thousands of top sellers to list, manage, and sell your products to a wider audience..",
+  description: "Manage Vendors selling on the platform.",
   icons: {
     icon: "/favicon.ico",
   },
