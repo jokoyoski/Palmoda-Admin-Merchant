@@ -6,10 +6,11 @@ import Sidebar from "./_components/SideBar";
 
 export const metadata: Metadata = {
   title: {
-    default: "My Next App",
-    template: "%s | My Next App",
+    default: "Palmoda Merchant",
+    template: "%s | Scale Your Business on Palmoda",
   },
-  description: "A simple Next.js application with a clean layout setup.",
+  description:
+    "oin thousands of top sellers to list, manage, and sell your products to a wider audience..",
   icons: {
     icon: "/favicon.ico",
   },
