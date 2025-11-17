@@ -48,22 +48,22 @@ function Applications() {
               </div>
             </div>
 
-            <div className='flex flex-col gap-[1px]'>
+            <div className='flex flex-col gap-px'>
                 <p className='text-gray-500 text-xs mb-0.5'>Business Type</p>
                 <h2 className='text-black text-sm'>Limited Liability Company</h2>
             </div>
 
-            <div className='flex flex-col gap-[1px]'>
+            <div className='flex flex-col gap-px'>
                 <p className='text-gray-500 text-xs mb-0.5'>Year Founded</p>
                 <h2 className='text-black text-sm'>2018</h2>
             </div>
 
-            <div className='flex flex-col gap-[1px]'>
+            <div className='flex flex-col gap-px'>
                 <p className='text-gray-500 text-xs mb-0.5'>Annual Revenue</p>
                 <h2 className='text-black text-sm'>€2.5M - €5M</h2>
             </div>
 
-            <div className='flex flex-col gap-[1px]'>
+            <div className='flex flex-col gap-1px'>
                 <p className='text-gray-500 text-xs mb-0.5'>Website</p>
                 <h2 className='text-black text-sm'>www.eleganceatelier.com</h2>
             </div>

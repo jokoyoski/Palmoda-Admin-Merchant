@@ -16,14 +16,14 @@ function Page() {
         <div className="flex items-center justify-center gap-5">
           <button
             onClick={() => setShowForm(true)}
-            className="bg-black hidden md:block text-white text-[18px] font-medium py-2 px-[8px]"
+            className="bg-black hidden md:block text-white text-[18px] font-medium py-2 px-2"
           >
             Palmoda Dashboard
           </button>
 
           <button
             onClick={() => setShowForm(true)}
-            className="bg-black hidden md:block text-white text-[18px] font-medium py-2 px-[8px]"
+            className="bg-black hidden md:block text-white text-[18px] font-medium py-2 px-2"
           >
             Merchant Dashboard
           </button>

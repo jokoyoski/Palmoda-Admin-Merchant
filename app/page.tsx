@@ -13,10 +13,10 @@ function page() {
          </div>
          <div className='flex gap-3 items-center'>
         <button
-        className='bg-inherit border uppercase border-black text-black py-[5px] px-[10px] w-fit text-sm'
+        className='bg-inherit border uppercase border-black text-black py-[5px] px-2.5 w-fit text-sm'
         >Review Queue</button>
         <button
-        className='bg-black  text-white py-[5px] px-[10px] w-fit uppercase text-sm'
+        className='bg-black  text-white py-[5px] px-2.5 w-fit uppercase text-sm'
         >New Applications</button>
         </div>
       </div>

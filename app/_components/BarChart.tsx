@@ -55,7 +55,7 @@ function BarChart() {
       </div>
 
       {/* Chart */}
-      <div className="w-full h-[240px]">
+      <div className="w-full h-60">
         <ResponsiveContainer width="100%" height="100%">
           <ReBarChart
             layout="vertical"
