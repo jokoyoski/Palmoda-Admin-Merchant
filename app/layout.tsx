@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: "%s | Scale Your Business on Palmoda",
   },
   description:
-    "oin thousands of top sellers to list, manage, and sell your products to a wider audience..",
+    "Join thousands of top sellers to list, manage, and sell your products to a wider audience..",
   icons: {
     icon: "/favicon.ico",
   },
