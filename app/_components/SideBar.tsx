@@ -69,7 +69,7 @@ function Sidebar() {
           </div>
 
           <Link
-            href="/logout"
+            href="/login"
             className="flex items-center gap-3 text-red-500 hover:text-red-700"
           >
             <FiLogOut /> Logout

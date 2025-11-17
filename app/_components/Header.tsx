@@ -100,7 +100,7 @@ function Header() {
             <hr className="my-3 border-gray-200" />
 
             <Link
-              href="/logout"
+              href="/login"
               className="flex items-center gap-3 text-red-500 hover:text-red-700 mt-auto"
               onClick={() => setMobileMenuOpen(false)}
             >

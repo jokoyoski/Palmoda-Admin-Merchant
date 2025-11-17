@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className="min-h-screen  text-black">
+      <body className="min-h-screen bg-white  text-black">
         {/* Fixed Header */}
         <Header />
 
