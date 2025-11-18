@@ -292,7 +292,8 @@ function Applications() {
                      border-gray-200'>Decision</h1>
                     <div className='p-4 flex flex-col gap-2'>
                          <button className='w-full bg-black py-2 px-4 text-xs text-white'>Approve Application</button>
-                         <button className='w-full bg-inherit py-2 px-4 text-xs border border-black text-black'>Approve Application</button>
+                         <button className='w-full bg-inherit py-2 px-4 text-xs border border-black text-black'>
+                          Reject Application</button>
                          <button className='bg-gray-200 text-gray-600 text-xs py-2 px-4
                           '>Request More Information</button>
 

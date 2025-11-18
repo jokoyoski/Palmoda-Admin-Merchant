@@ -147,6 +147,16 @@ function Products() {
   </button>
 </div>
 
+<div className='flex justify-end gap-3 mt-6'>
+  <button className='px-5 py-2 text-xs font-semibold uppercase border border-gray-300 text-gray-700 hover:bg-gray-100'>
+    Prev
+  </button>
+
+  <button className='px-5 py-2 text-xs font-semibold uppercase bg-black text-white hover:bg-gray-800'>
+    Next
+  </button>
+</div>
+
 </div>
 
         {/* ending of description */}

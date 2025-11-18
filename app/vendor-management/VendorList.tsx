@@ -70,81 +70,123 @@ export default function VendorList() {
 
       <div className="flex gap-6">
         {/* FILTERS */}
-        <div className="w-[22%] flex flex-col gap-4 border border-gray-200 p-4 rounded-lg bg-gray-50">
-          <input
-            type="text"
-            placeholder="Search vendor, brand, product, email"
-            className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:ring-2 focus:ring-black/20"
-          />
+       {/* FILTERS */}
+<div className="w-[22%] flex flex-col gap-4 border border-gray-200 p-4 rounded-lg bg-gray-50">
 
-          <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
-            <option>Business Type</option>
-            <option>Limited company</option>
-            <option>Sole proprietor</option>
-          </select>
+  {/* Search */}
+  <label className="text-xs font-medium text-gray-600">Search</label>
+  <input
+    type="text"
+    placeholder="Vendor, brand, product, email"
+    className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:ring-2 focus:ring-black/20"
+  />
 
-          <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
-            <option>Country</option>
-            <option>Nigeria</option>
-            <option>Ghana</option>
-          </select>
-          <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
-      <option>KYC Status</option>
-      <option>Verified</option>
-      <option>Pending</option>
-      <option>Unverified</option>
-    </select>
+  {/* Business Type */}
+  <label className="text-xs font-medium text-gray-600">Business Type</label>
+  <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
+    <option>Any</option>
+    <option>Limited company</option>
+    <option>Sole proprietor</option>
+  </select>
 
-    {/* Document Missing */}
-    <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
-      <option>Document Missing</option>
-      <option>Yes</option>
-      <option>No</option>
-    </select>
+  {/* Country */}
+  <label className="text-xs font-medium text-gray-600">Country</label>
+  <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
+    <option>Any</option>
+    <option>Nigeria</option>
+    <option>Ghana</option>
+  </select>
 
-    {/* Onboarding Age */}
-    <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
-      <option>Onboarding Age</option>
-      <option>0–3 months</option>
-      <option>3–6 months</option>
-      <option>6–12 months</option>
-      <option>1+ years</option>
-    </select>
+  {/* KYC Status */}
+  <label className="text-xs font-medium text-gray-600">KYC Status</label>
+  <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
+    <option>Any</option>
+    <option>Verified</option>
+    <option>Pending</option>
+    <option>Unverified</option>
+  </select>
 
-    {/* Last Activity */}
-    <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
-      <option>Last Activity</option>
-      <option>Today</option>
-      <option>This week</option>
-      <option>This month</option>
-      <option>1–3 months ago</option>
-      <option>3+ months ago</option>
-    </select>
+  {/* Documents Missing */}
+  <label className="text-xs font-medium text-gray-600">Document Missing</label>
+  <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
+    <option>Any</option>
+    <option>Yes</option>
+    <option>No</option>
+  </select>
 
-    
+  {/* Onboarding Age */}
+  <label className="text-xs font-medium text-gray-600">Onboarding Age</label>
+  <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
+    <option>Any</option>
+    <option>0–3 months</option>
+    <option>3–6 months</option>
+    <option>6–12 months</option>
+    <option>1+ years</option>
+  </select>
 
-    {/* Revenue Range */}
-    <div className="flex flex-col gap-2">
-      <p className="text-xs font-medium text-gray-600">Revenue Range</p>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          placeholder="Min"
-          className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:ring-2 focus:ring-black/20"
-        />
-        <span className="text-gray-500">-</span>
-        <input
-          type="number"
-          placeholder="Max"
-          className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:ring-2 focus:ring-black/20"
-        />
-      </div>
+  {/* Last Activity */}
+  <label className="text-xs font-medium text-gray-600">Last Activity</label>
+  <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
+    <option>Any</option>
+    <option>Today</option>
+    <option>This week</option>
+    <option>This month</option>
+    <option>1–3 months ago</option>
+    <option>3+ months ago</option>
+  </select>
+
+  {/* Revenue Range */}
+  <div className="flex flex-col gap-2">
+    <label className="text-xs font-medium text-gray-600">Revenue Range</label>
+    <div className="flex items-center gap-2">
+      <input
+        type="number"
+        placeholder="Min"
+        className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:ring-2 focus:ring-black/20"
+      />
+      <span className="text-gray-500">-</span>
+      <input
+        type="number"
+        placeholder="Max"
+        className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:ring-2 focus:ring-black/20"
+      />
     </div>
+  </div>
 
-          <button className="bg-black text-white text-sm py-2 rounded-md">
-            Apply Filters
-          </button>
-        </div>
+  {/* NEW CHECKBOX FILTERS */}
+  <div className="flex flex-col gap-2 mt-2">
+    <label className="text-xs font-medium text-gray-600">More Filters</label>
+
+    <label className="flex items-center gap-2 text-sm">
+      <input type="checkbox" className="accent-black" />
+      Flagged Only
+    </label>
+
+    <label className="flex items-center gap-2 text-sm">
+      <input type="checkbox" className="accent-black" />
+      With Disputes
+    </label>
+
+    <label className="flex items-center gap-2 text-sm">
+      <input type="checkbox" className="accent-black" />
+      Inventory Low
+    </label>
+  </div>
+
+  {/* ACTION BUTTONS */}
+  <div className="flex gap-4 justify-center   mt-4">
+    <button className="bg-black text-white w-[100px]  text-sm py-2 px-4 ">
+      Apply
+    </button>
+
+    <button className="border border-gray-300 w-[100px] text-gray-700
+     text-sm py-2 px-4 bg-inherit">
+      Clear
+    </button>
+  </div>
+
+</div>
+
 
         {/* TABLE */}
         <div className="w-[78%] bg-white rounded-lg 
@@ -218,21 +260,24 @@ export default function VendorList() {
 
                   {/* STATUS */}
                   <td className="py-3 px-4 whitespace-nowrap">
-                    <span className="bg-green-100 text-green-700 px-3 py-1 text-xs rounded-full">
+                    <span className="bg-gray-200 text-gray-900 px-3 py-1 text-xs">
                       {vendor.status}
                     </span>
                   </td>
 
                   {/* ACTIONS */}
                    <td className="py-3 px-4 flex gap-2">
-                    <button className="px-3 py-1 border rounded text-blue-600 border-blue-600 text-xs hover:bg-blue-50">
+                   <button className="px-3 py-1 border 
+                     text-black bg-inherit text-xs ">
                       View
                     </button>
-                    <button className="px-3 py-1 border rounded text-green-600 border-green-600 text-xs hover:bg-green-50">
-                      Accept
+                    <button className="px-3 py-1 border 
+                     text-black bg-inherit text-xs ">
+                      Suspend
                     </button>
-                    <button className="px-3 py-1 border rounded text-red-600 border-red-600 text-xs hover:bg-red-50">
-                      Reject
+                    <button className="px-3 py-1 border 
+                     text-black bg-inherit text-xs ">
+                      Message
                     </button>
                   </td> 
                 </tr>
