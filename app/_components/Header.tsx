@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { FiSearch, FiMenu, FiX, FiUserCheck, FiUsers } from "react-icons/fi";
 import { CiUser } from "react-icons/ci";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FiUserPlus,
   FiFileText,
@@ -16,10 +16,21 @@ import {
 } from "react-icons/fi";
 import { BsGraphUp } from "react-icons/bs";
 import { MdOutlineRateReview } from "react-icons/md";
+import { useAuth } from "../_lib/AuthContext";
+import { useRouter } from "next/navigation";
 
 function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [firstname, setfirstName] = useState("");
+  const [lastname, setlastName] = useState("");
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  useEffect(() => {
+    setfirstName(user?.first_name || "");
+    setlastName(user?.last_name || "");
+  }, [user]);
 
   if (pathname.includes("login")) return null;
 
@@ -65,7 +76,7 @@ function Header() {
           <div className="flex items-center gap-2">
             <CiUser size={25} color="black" />
             <h2 className="font-semibold text-black text-[15px]">
-              Sophia Laurent
+             {firstname} {lastname}
             </h2>
           </div>
         </div>
@@ -99,13 +110,12 @@ function Header() {
 
             <hr className="my-3 border-gray-200" />
 
-            <Link
-              href="/login"
+            <button
+              onClick={logout}
               className="flex items-center gap-3 text-red-500 hover:text-red-700 mt-auto"
-              onClick={() => setMobileMenuOpen(false)}
             >
               Logout
-            </Link>
+            </button>
           </nav>
         </aside>
       </div>

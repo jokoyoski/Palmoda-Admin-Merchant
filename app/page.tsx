@@ -2,10 +2,12 @@ import React from 'react'
 import DashboardGrid from './_components/DashboardGrid'
 import DashboardStatsGrid from './_components/DashboardStatsGrid'
 import VendorsSection from './_components/VendorsSection'
+import ProtectedRoute from "./_components/ProtectedRoute";
 
 function page() {
   return (
-    <section className='bg-whitemin-h-screen px-4  md:px-8 py-6 w-full'>
+    <ProtectedRoute>
+      <section className='bg-whitemin-h-screen px-4  md:px-8 py-6 w-full'>
       <div className='flex items-center justify-between'>
          <div>
           <h1 className='text-black font-bold text-xl'>Vendor Management Dashboard</h1>
@@ -23,7 +25,8 @@ function page() {
       <DashboardGrid />
       <DashboardStatsGrid />
       <VendorsSection />
-    </section>
+    </section>\
+    </ProtectedRoute>
   )
 }
 

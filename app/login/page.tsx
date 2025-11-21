@@ -1,8 +1,35 @@
 "use client";
 import React, { useState } from "react";
+import { useAuth } from "../_lib/AuthContext";
+import {adminLogin} from "../_lib/admin"
+import { toast } from "react-toastify";
 
 function Page() {
   const [showForm, setShowForm] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+
+  const handleLogin = async (e: any) => {
+       e.preventDefault();
+       setLoading(true);
+       try {
+         const res = await adminLogin(email, password);
+         
+   if (res.success) {
+     login(res); 
+          toast.success("Login Successful");
+          setLoading(false);
+   }
+          
+       } catch (error: any) {
+        toast.error(error.message);
+       }finally{
+        setLoading(false);
+       }
+  }
+
 
   return (
     <div className="bg-white min-h-screen flex flex-col text-center text-black">
@@ -34,24 +61,32 @@ function Page() {
           <div className="w-full max-w-[380px] mt-6 p-6 border rounded-xl shadow-md animate-slideDown">
             <h3 className="text-xl font-semibold text-gray-800 mb-4">Login</h3>
 
-            <form className="flex flex-col gap-4">
+            <form 
+             onSubmit={handleLogin}
+            className="flex flex-col gap-4">
               <input
                 type="email"
+                 onChange={(e) => setEmail(e.target.value)}
+              value={email}
                 placeholder="Email"
                 className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
               />
               <input
                 type="password"
                 placeholder="Password"
+                 onChange={(e) => setPassword(e.target.value)}
+               value={password}
                 className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
               />
 
               <button
-                type="submit"
-                className="bg-black text-white py-2 rounded-lg text-[17px] font-medium hover:bg-gray-900 transition"
-              >
-                Log in
-              </button>
+            type="submit"
+            disabled={loading} // disable button when loading
+            className={`w-full py-2 rounded-lg text-lg font-medium transition 
+              ${loading ? "bg-gray-500 cursor-not-allowed" : "bg-black text-white hover:bg-gray-900"}`}
+          >
+            {loading ? "Logging in..." : "Log In"}
+          </button>
             </form>
           </div>
         )}
