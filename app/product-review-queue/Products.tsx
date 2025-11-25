@@ -149,7 +149,7 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
               <div>
                 <h1 className="text-sm text-black font-semibold">{vendor?.brand?.brand_name}</h1>
                 <p className="text-gray-500 text-xs">
-                  Submitted: May 12, 2023 • ID: {item?.sku}
+                  Submitted: {new Date(item?.created_at).toISOString().split("T")[0]} • ID: {item?.sku}
                 </p>
               </div>
             </div>
@@ -168,9 +168,9 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
           </div>
 
           {/* Product Details */}
-          <div className="flex gap-4">
+          <div className="flex gap-7">
             {/* Images */}
-            <div className="flex flex-col gap-4 w-[250px]">
+            <div className="flex flex-col gap-6 w-[250px]">
               <img
                 src={item.images[0]}
                 alt="Main Product"
