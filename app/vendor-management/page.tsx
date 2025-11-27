@@ -21,10 +21,12 @@ export default function Page() {
     setLoading(true);
     const res = await getVendors(page);
 
+    console.log("Current-Page===>>", page);
+    console.log("Response>>>", res);
     if (res?.success) {
       setVendors(res.data.data);
       setFilteredVendors(res.data.data);
-      setTotalPages(res.data.total_pages || 1); // backend returns total_pages?
+      setTotalPages(res.data.total_vendors || 1); // backend returns total_pages?
     }
 
     setLoading(false);
@@ -35,84 +37,85 @@ export default function Page() {
   }, [currentPage]);
 
   // FILTERING LOGIC
- const handleApplyFilters = () => {
-  let data = [...vendors];
+  const handleApplyFilters = () => {
+    let data = [...vendors];
 
-  // Search
-  if (search.trim()) {
-    const lower = search.toLowerCase();
-    data = data.filter(
-      v =>
-        v.business_name.toLowerCase().includes(lower) ||
-        v.contact_person_name.toLowerCase().includes(lower) ||
-        v.email.toLowerCase().includes(lower)
-    );
-  }
+    // Search
+    if (search.trim()) {
+      const lower = search.toLowerCase();
+      data = data.filter(
+        (v) =>
+          v.business_name.toLowerCase().includes(lower) ||
+          v.contact_person_name.toLowerCase().includes(lower) ||
+          v.email.toLowerCase().includes(lower)
+      );
+    }
 
-  // Business type
-  if (businessType !== "Any") {
-    data = data.filter(v => v.kyc_compliance.business_type === businessType);
-  }
+    // Business type
+    if (businessType !== "Any") {
+      data = data.filter(
+        (v) => v.kyc_compliance.business_type === businessType
+      );
+    }
 
-  // KYC status
-  if (kyc !== "Any") {
-    data = data.filter(v => {
-      const isVerified =
-        v.is_business_verified &&
-        v.is_identity_verified &&
-        v.is_bank_information_verified;
+    // KYC status
+    if (kyc !== "Any") {
+      data = data.filter((v) => {
+        const isVerified =
+          v.is_business_verified &&
+          v.is_identity_verified &&
+          v.is_bank_information_verified;
 
-      if (kyc === "Verified") return isVerified;
-      if (kyc === "Unverified") return !isVerified;
-      if (kyc === "Pending") {
-        return (
-          !v.is_business_verified ||
-          !v.is_identity_verified ||
-          !v.is_bank_information_verified
-        );
-      }
-      return true;
-    });
-  }
+        if (kyc === "Verified") return isVerified;
+        if (kyc === "Unverified") return !isVerified;
+        if (kyc === "Pending") {
+          return (
+            !v.is_business_verified ||
+            !v.is_identity_verified ||
+            !v.is_bank_information_verified
+          );
+        }
+        return true;
+      });
+    }
 
-  setFilteredVendors(data);
-};
-
+    setFilteredVendors(data);
+  };
 
   return (
     <ProtectedRoute>
       <section className="bg-white min-h-screen px-4 md:px-8 py-6 w-full">
-      <div className="flex items-center justify-between">
-        <h1 className="text-black font-bold text-xl">Vendor List</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-black font-bold text-xl">Vendor List</h1>
 
-        <div className="flex gap-3 items-center">
-          <button className="border border-black text-black py-[5px] px-2.5 text-xs">
-            Invite Vendor
-          </button>
-          <button className="border border-black text-black py-[5px] px-2.5 text-xs">
-            Export CSV
-          </button>
-          <button className="border border-black text-black py-[5px] px-2.5 text-xs">
-            Help
-          </button>
+          <div className="flex gap-3 items-center">
+            <button className="border border-black text-black py-[5px] px-2.5 text-xs">
+              Invite Vendor
+            </button>
+            <button className="border border-black text-black py-[5px] px-2.5 text-xs">
+              Export CSV
+            </button>
+            <button className="border border-black text-black py-[5px] px-2.5 text-xs">
+              Help
+            </button>
+          </div>
         </div>
-      </div>
 
-      <VendorList
-        vendors={filteredVendors}
-        search={search}
-        setSearch={setSearch}
-        businessType={businessType}
-        setBusinessType={setBusinessType}
-        kyc={kyc}
-        setKyc={setKyc}
-         loading={loading} 
+        <VendorList
+          vendors={filteredVendors}
+          search={search}
+          setSearch={setSearch}
+          businessType={businessType}
+          setBusinessType={setBusinessType}
+          kyc={kyc}
+          setKyc={setKyc}
+          loading={loading}
           onApplyFilters={handleApplyFilters}
-           currentPage={currentPage}
-  totalPages={totalPages}
-  onPageChange={(page) => setCurrentPage(page)}
-      />
-    </section>
+          currentPage={currentPage}
+          totalVendors={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
+      </section>
     </ProtectedRoute>
   );
 }
