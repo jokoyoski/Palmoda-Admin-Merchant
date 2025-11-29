@@ -7,6 +7,7 @@ import {
   FiSettings,
   FiLogOut,
 } from "react-icons/fi";
+import { FaMoneyBill } from "react-icons/fa";
 import { MdOutlineRateReview } from "react-icons/md";
 import { usePathname } from "next/navigation";
 import { IoMdInformationCircle } from "react-icons/io";
@@ -27,6 +28,7 @@ function Sidebar() {
     // { href: "/product-review-queue", label: "Product Review Queue", icon: <MdOutlineRateReview /> },
     { href: "/vendor-management", label: "Vendor Management", icon: <FiUsers /> },
     { href: "/", label: "Analytics", icon: <BsGraphUp /> },
+    {href: "/payouts", label: "Payouts", icon: <FaMoneyBill />},
     { href: "/settings", label: "Settings", icon: <FiSettings /> },
   ];
 
