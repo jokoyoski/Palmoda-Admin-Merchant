@@ -10,6 +10,7 @@ import { verifyBankDetails, verifyBusiness, verifyVendorIdentity } from '../_lib
 import { toast } from "react-toastify";
 import Link from 'next/link'
 import {getAllVendorMessages, sendMessage} from "../_lib/message"
+import { useRouter } from 'next/navigation'
 
 
 
@@ -31,6 +32,7 @@ function Applications({ vendor, id, products }: ApplicationsProps) {
   const [sending, setSending] = useState(false);
   const [message_type, setMessageType] = useState("text"); 
   const [showPopup, setShowPopup] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
      const getMessages = async () => {
@@ -175,6 +177,7 @@ const handleApprove = async () => {
     toast.success(bankRes.message || "Bank details verified");
 
     toast.success("Vendor approved successfully!");
+    router.push("/vendor-management");
   } catch (error: any) {
     toast.error(error.message || "Something went wrong during approval");
   } finally {
