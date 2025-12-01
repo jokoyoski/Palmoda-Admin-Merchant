@@ -16,6 +16,9 @@ import { Product, Vendor } from '../_lib/type'
 import { approveProduct, rejectProduct } from '../_lib/products';
 import { toast } from 'react-toastify';
 import { FaL } from 'react-icons/fa6';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { FaArrowLeft } from 'react-icons/fa';
 
 interface ProductProps {
   vendor: Vendor | null;
@@ -35,6 +38,7 @@ function Products({ vendor, id, products,  }: ProductProps) {
     const [rejecting, setRejecting] = useState(false);
     const [rejectReason, setRejectReason] = useState("");
     const [approving, setApproving] = useState(false);
+    const router = useRouter();
 
      const [queryParams, setQueryParams] = useState<CategoryQueryParams>({
         page_number: 1,
@@ -78,7 +82,7 @@ function Products({ vendor, id, products,  }: ProductProps) {
         error: colorError,
       } = useFetchColors();
 
-        const pageSize = 1
+        const pageSize = 3
       const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const currentProducts = products.slice(startIndex, endIndex);
@@ -130,6 +134,14 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
 
   return (
      <section className="bg-white px-4 mt-3.5 py-3">
+    <button
+  onClick={() => router.back()}
+  className="text-xs flex items-center gap-1 cursor-pointer text-gray-600 mb-5  hover:text-gray-800"
+>
+  <FaArrowLeft />  
+  <span>Back to Vendor Details</span>
+</button>
+
       {currentProducts.map((item, index) => (
         <div key={index} className="p-3 border border-gray-200 mb-4">
           {/* Product Header */}
@@ -192,8 +204,8 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
             <div className="w-full">
               <h1 className="text-sm font-semibold text-black">{item.name}</h1>
               <div className="flex items-center gap-4 my-3.5">
-                <h3 className="text-xl font-semibold text-black">{item.discounted_price}</h3>
-                <h4 className="text-gray-500 text-sm line-through">{item.cost_price}</h4>
+                <h3 className="text-xl font-semibold text-black">₦{item.discounted_price.toLocaleString()}</h3>
+                <h4 className="text-gray-500 text-sm line-through">₦{item.cost_price.toLocaleString()}</h4>
               </div>
 
               {/* Product info */}
@@ -245,8 +257,8 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
              {item?.status === "Approved" ? "" : 
              
              <div className='flex gap-3 mt-4'>
-                 <button className='px-5 py-2 text-xs font-semibold uppercase text-gray-700 border
-                  border-gray-300 hover:bg-gray-100'> Flag for Review </button> 
+                 {/* <button className='px-5 py-2 text-xs font-semibold uppercase text-gray-700 border
+                  border-gray-300 hover:bg-gray-100'> Flag for Review </button>  */}
                   <button
                   onClick={() => handleReject(item?.vendor_id, item?._id, rejectReason)}
                   className='px-5 py-2 text-xs font-semibold uppercase bg-red-600 border

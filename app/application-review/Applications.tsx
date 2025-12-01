@@ -1,14 +1,17 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { CiUser } from 'react-icons/ci'
 import img1 from "../../public/assets/7cd89eaf-57d4-4773-8b5f-0fdce72ef1a5.png"
 import img2 from "../../public/assets/b425334f-061c-49bb-b33a-ab716b862a67.png"
 import img3 from "../../public/assets/da818fa8-25f0-44c6-9620-eaf3e46b4bba.png"
 import Image from 'next/image'
-import { Vendor, KycCompliance, Product } from "@/app/_lib/type";
+import { Vendor, KycCompliance, Product, VendorMessage } from "@/app/_lib/type";
 import { verifyBankDetails, verifyBusiness, verifyVendorIdentity } from '../_lib/admin'
 import { toast } from "react-toastify";
 import Link from 'next/link'
+import {getAllVendorMessages, sendMessage} from "../_lib/message"
+import { useRouter } from 'next/navigation'
+
 
 
 interface ApplicationsProps {
@@ -21,24 +24,53 @@ interface ApplicationsProps {
 function Applications({ vendor, id, products }: ApplicationsProps) {
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
   const [approving, setApproving] = useState(false);
+  const [messages, setMessages] = useState<VendorMessage[]>([])
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [sending, setSending] = useState(false);
+  const [message_type, setMessageType] = useState("text"); 
+  const [showPopup, setShowPopup] = useState(false);
+  const router = useRouter();
 
-    const images = [
-        {
-            pic: img1,
-            text: "Evening Gown",
-            price: "€1,250"
-        },
-        {
-            pic: img2,
-            text: "Evening Gown",
-            price: "€1,250"
-        },
-        {
-            pic: img3,
-            text: "Evening Gown",
-            price: "€1,250"
-        },
-    ]
+  useEffect(() => {
+     const getMessages = async () => {
+       try {
+        setLoading(true);
+                const res = await getAllVendorMessages(id);
+                console.log(res.data);
+                if (res?.data) {
+                  setMessages(res.data);
+                } else {
+                  setError("No transaction found");
+                }
+       } catch (err: any) {
+          setError(err.message);
+       }finally{
+        setLoading(false)
+       }
+     }
+     getMessages();
+  }, [id])
+
+    // const images = [
+    //     {
+    //         pic: img1,
+    //         text: "Evening Gown",
+    //         price: "€1,250"
+    //     },
+    //     {
+    //         pic: img2,
+    //         text: "Evening Gown",
+    //         price: "€1,250"
+    //     },
+    //     {
+    //         pic: img3,
+    //         text: "Evening Gown",
+    //         price: "€1,250"
+    //     },
+    // ]
 
     
 
@@ -145,6 +177,7 @@ const handleApprove = async () => {
     toast.success(bankRes.message || "Bank details verified");
 
     toast.success("Vendor approved successfully!");
+    router.push("/vendor-management");
   } catch (error: any) {
     toast.error(error.message || "Something went wrong during approval");
   } finally {
@@ -152,6 +185,33 @@ const handleApprove = async () => {
   }
 };
 
+
+const handleMessage = async () => {
+  if (!content.trim()) {
+    return toast.error("Message cannot be empty");
+  }
+
+  try {
+    setSending(true);
+    const res = await sendMessage(id, title, content, message_type);
+
+    if (res?.success === false) {
+      toast.error(res.message);
+    } else {
+      toast.success("Message sent successfully!");
+      
+      // Refresh messages list
+      setMessages((prev) => [...prev, res.data]);
+      
+      setContent("");
+    }
+
+  } catch (error: any) {
+    toast.error(error.message || "Failed to send message");
+  } finally {
+    setSending(false);
+  }
+};
 
 
 
@@ -269,9 +329,10 @@ const handleApprove = async () => {
 ))}
     
                 </div>
-                <Link href={`/product-review-queue/${id}`} className='
+                {products.length > 0 && <Link href={`/product-review-queue/${id}`} className='
     text-xs font-semibold p-3 border -mt-5 mb-10 border-gray-200
-    '>View All Products</Link>
+    '>View All Products</Link>}
+                
                 <div className='mt-6'>
                   <h1 className='text-gray-500  text-sm mb-2'>Product Information</h1>
                   <div className='flex gap-2.5 text-gray-500  text-xs'>
@@ -336,37 +397,29 @@ const handleApprove = async () => {
                     </div>
 
                     <div className='border border-gray-200 '>
-                  <div className='px-4 py-3 border-b border-gray-200'>
+                  <div className='px-4 py-3 border-b border-gray-200' id='message'>
                     <h1 className='text-black font-semibold text-sm'>Notes & Communication</h1>
                   </div>
-                  {/* <div className='grid grid-cols-1 gap-4 px-4 py-3'>
-                      <div className='border-b flex justify-between border-gray-200 p-2'>
-                           <div className='flex gap-2'>
-                             <CiUser className='text-black text-[25px]'/>
-                             <div className='w-[350px]'>
-                                <h1 className='text-black font-semibold text-sm'>Sarah Johnson  <span className='ml-5 text-gray-500 text-xs font-light'>Compliance Officer</span></h1>
-                                 <p className='text-gray-500 text-xs'>Bank statements look good, but we need to verify the source of funding for their initial inventory. Please request additional documentation.</p>
-                             </div>
-                           </div>
-                           <p className='text-gray-500 text-xs'>Oct 11, 2023 - 14:32</p>
-                      </div>
+                    {messages.map((message, index) =>
+                       ( <div key={index} className='border-b flex justify-between border-gray-200 p-2'>
+                         <div className='flex gap-2'> 
+                         <div className='w-[350px]'>
+                           <h1 className='text-sm font-semibold text-black'>{message.title}</h1>
+                          <p className='text-gray-500 text-xs'> {message.content} </p> 
+                          </div> 
+                    </div> 
+                    <p className='text-gray-500 text-xs'>{message.created_at}</p>
+                     </div> ))}
 
-                       <div className='border-b flex justify-between border-gray-200 p-2'>
-                           <div className='flex gap-2'>
-                             <CiUser className='text-black text-[25px]'/>
-                             <div className='w-[350px]'>
-                                <h1 className='text-black font-semibold text-sm'>Sarah Johnson  <span className='ml-5 text-gray-500 text-xs font-light'>Compliance Officer</span></h1>
-                                 <p className='text-gray-500 text-xs'>Bank statements look good, but we need to verify the source of funding for their initial inventory. Please request additional documentation.</p>
-                             </div>
-                           </div>
-                           <p className='text-gray-500 text-xs'>Oct 11, 2023 - 14:32</p>
-                      </div>
 
-                      <div className='flex items-center gap-3'>
-                        <input type="text" placeholder='Add a note' className='w-[70%] text-xs text-gray-500 p-2 border border-gray-200' />
-                        <button className='bg-black text-xs text-white p-2'>Add</button>
-                      </div>
-                    </div> */}
+                    <div className='px-4 py-3'>
+                      <button 
+  onClick={() => setShowPopup(true)} 
+  className="bg-black text-white px-4 text-xs py-2 rounded"
+>
+  Add Note
+</button>
+                    </div>
                     </div>
 
                     
@@ -539,6 +592,57 @@ const handleApprove = async () => {
     </div>
   </div>
 )}
+
+{showPopup && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+    <div className="bg-white p-6 rounded-xl w-[90%] max-w-md shadow-2xl border border-gray-200">
+      
+      {/* Popup Header */}
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Add Note</h2>
+
+      {/* Title Input */}
+      <input
+        type="text"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 
+        focus:outline-none focus:ring-2  focus:border-transparent"
+      />
+
+      {/* Content Input */}
+      <textarea
+        className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 focus:outline-none focus:ring-2  focus:border-transparent"
+        rows={5}
+        placeholder="Write your note..."
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+      />
+
+      {/* Action Buttons */}
+      <div className="mt-3 flex justify-end gap-3">
+        <button
+          onClick={() => setShowPopup(false)}
+          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={() => {
+            handleMessage();
+            setShowPopup(false);
+          }}
+          className="px-4 py-2 bg-black text-white rounded-md "
+        >
+          {sending ? "Sending" : "Send"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
     </section>
   )

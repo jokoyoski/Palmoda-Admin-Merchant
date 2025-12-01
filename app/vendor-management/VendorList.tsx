@@ -262,10 +262,17 @@ export default function VendorList({
                       <td className="py-3 px-4"></td>
 
                       <td className="py-3 px-4">
-                        <span className="bg-gray-200 text-gray-900 px-3 py-1 text-xs">
-                          {vendor.is_active ? "Active" : "Inactive"}
-                        </span>
-                      </td>
+  <span
+    className={`px-3 py-1 text-xs font-medium rounded-md 
+      ${vendor.is_active 
+        ? "bg-green-100 text-green-700" 
+        : "bg-orange-100 text-orange-700"
+      }`}
+  >
+    {vendor.is_active ? "Active" : "Inactive"}
+  </span>
+</td>
+
 
                       <td className="py-3 px-4 flex items-center gap-2">
                         <Link
@@ -277,9 +284,9 @@ export default function VendorList({
                         <button className="px-3 py-1 border text-black bg-inherit text-xs">
                           Suspend
                         </button>
-                        <button className="px-3 py-1 border text-black bg-inherit text-xs">
+                        <Link href={`/application-review/${vendor?._id}#mesage`} className="px-3 py-1 border text-black bg-inherit text-xs">
                           Message
-                        </button>
+                        </Link>
                       </td>
                     </tr>
                   ))}
