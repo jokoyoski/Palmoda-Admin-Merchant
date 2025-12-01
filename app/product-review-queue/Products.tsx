@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { CiUser } from 'react-icons/ci'
 import img1 from "../../public/assets/acf62735-b103-4181-8e53-efa013a84b29.png"
 import img2 from "../../public/assets/7c6f6e3f-9ad5-47d3-97f3-0e61978d84da.png"
@@ -28,7 +28,7 @@ interface ProductProps {
 }
 
 
-function Products({ vendor, id, products,  }: ProductProps) {
+function Products({ vendor, id, products:initialProducts,  }: ProductProps) {
   const [colors, setColors] = useState<string[]>([]);
     const [sizes, setSizes] = useState<string[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -38,7 +38,14 @@ function Products({ vendor, id, products,  }: ProductProps) {
     const [rejecting, setRejecting] = useState(false);
     const [rejectReason, setRejectReason] = useState("");
     const [approving, setApproving] = useState(false);
+    const [productQueue, setProductQueue] = useState<Product[]>(initialProducts);
+    // Use useEffect to update local state if the prop changes (e.g., after an initial fetch)
+    
     const router = useRouter();
+
+    useEffect(() => {
+        setProductQueue(initialProducts);
+    }, [initialProducts]);
 
      const [queryParams, setQueryParams] = useState<CategoryQueryParams>({
         page_number: 1,
@@ -85,9 +92,9 @@ function Products({ vendor, id, products,  }: ProductProps) {
         const pageSize = 3
       const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  const currentProducts = products.slice(startIndex, endIndex);
+  const currentProducts = productQueue.slice(startIndex, endIndex);
 
-  const totalPages = Math.ceil(products.length / pageSize);
+  const totalPages = Math.ceil(productQueue.length / pageSize);
 
   const mapIdsToNames = (ids: string[], referenceArray: { _id: string; name: string }[]) => {
   return ids
@@ -99,38 +106,56 @@ function Products({ vendor, id, products,  }: ProductProps) {
 // For fabrics/materials
 const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
 
-  const handeleApproval = async (vednorId: string, prodId: string) => {
-     try {
-       setApproving(true);
-       const res = await approveProduct(vednorId, prodId);
-       if(res.success){
-   toast.success(res.message);
-} else {
-   toast.error(res.message);
-}
-     } catch (error: any) {
-       toast.error(error?.message)
-     }finally{
-      setApproving(false)
-     }
-  }
+  const updateProductStatus = (productId: string, newStatus: string) => {
+      setProductQueue(prevProducts =>
+        prevProducts.map(p =>
+          p._id === productId ? { ...p, status: newStatus } : p
+        )
+      );
+    };
 
-  const handleReject = async (vednorId:string, prodId: string, reason: string) => {
-     try {
-      setRejecting(true);
-       const res = await rejectProduct(vednorId, prodId, reason);
-       if(res.success){
-   toast.success(res.message);
-} else {
-   toast.error(res.message);
-}
-     } catch (error: any) {
-      toast.error(error?.message);
-     }finally{
-      setRejecting(false)
-     }
-  }
+    const handeleApproval = async (vendorId: string, prodId: string) => {
+       try {
+         setApproving(true);
+         const res = await approveProduct(vendorId, prodId);
+         if(res.success){
+           toast.success(res.message || "Product approved successfully!");
+           // --- IMMEDIATE STATE UPDATE ---
+           updateProductStatus(prodId, "Approved");
+           // ------------------------------
+         } else {
+           toast.error(res.message || "Failed to approve product.");
+         }
+       } catch (error: any) {
+         toast.error(error?.message || "An error occurred during approval.")
+       }finally{
+         setApproving(false)
+       }
+    }
 
+    const handleReject = async (vendorId:string, prodId: string, reason: string) => {
+       if (!reason.trim()) {
+         return toast.error("Please provide a rejection reason in the Review Notes.");
+       }
+       try {
+        setRejecting(true);
+         const res = await rejectProduct(vendorId, prodId, reason);
+         if(res.success){
+           toast.success(res.message || "Product rejected successfully!");
+           // --- IMMEDIATE STATE UPDATE ---
+           updateProductStatus(prodId, "Rejected");
+           // Clear reason after successful rejection
+           setRejectReason(""); 
+           // ------------------------------
+         } else {
+           toast.error(res.message || "Failed to reject product.");
+         }
+       } catch (error: any) {
+         toast.error(error?.message || "An error occurred during rejection.");
+       }finally{
+         setRejecting(false)
+       }
+    }
 
   return (
      <section className="bg-white px-4 mt-3.5 py-3">
@@ -269,7 +294,10 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
                      border-gray-300 hover:bg-gray-100'> Request Correction </button>
                <button 
                onClick={() => handeleApproval(item?.vendor_id,  item?._id)}
-               className='px-5 py-2 text-xs font-semibold uppercase text-white bg-black hover:bg-gray-800'>
+               disabled={item?.status === "Approved"}
+               className={`px-5 py-2 text-xs font-semibold uppercase text-white bg-black hover:bg-gray-800
+               ${item?.status === "Approved" ? "cursor-not-allowed": ""}
+               `}>
                {approving ? "Approving" :   "Approve" }
                  
                  </button> 
