@@ -14,12 +14,12 @@ function page() {
         <p className='text-gray-500 text-[13px] my-2'>Comprehensive overview and management of vendor performance</p>
          </div>
          <div className='flex gap-3 items-center'>
-        <button
+        {/* <button
         className='bg-inherit border uppercase border-black text-black py-[5px] px-2.5 w-fit text-sm'
         >Review Queue</button>
         <button
         className='bg-black  text-white py-[5px] px-2.5 w-fit uppercase text-sm'
-        >New Applications</button>
+        >New Applications</button> */}
         </div>
       </div>
       <DashboardGrid />

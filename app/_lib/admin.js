@@ -96,6 +96,59 @@ export const verifyBankDetails = async (id) => {
 }
 
 
+export const suspendVendor = async (vendor_id) => {
+   try {
+       const token = localStorage.getItem("token");
+    if (!token) return console.log("No token found");
+    const res = await axios.put(`${backendUrl}/vendor/suspend/${vendor_id}`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return res.data;
+   } catch (error) {
+       if (error.response?.data?.message) {
+      return {
+        success: false,
+        message: error.response.data.message,
+      };
+    }
+
+    // fallback message
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    } 
+   } 
+}
+
+export const revokeSuspension = async (vendor_id) => {
+  try {
+       const token = localStorage.getItem("token");
+    if (!token) return console.log("No token found");
+    const res = await axios.put(`${backendUrl}/vendor/revoke-suspension/${vendor_id}`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return res.data;
+  } catch (error) {
+    if (error.response?.data?.message) {
+      return {
+        success: false,
+        message: error.response.data.message,
+      };
+    }
+
+    // fallback message
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    } 
+  }
+}
+
+
 
 
 

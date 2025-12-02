@@ -78,7 +78,7 @@ export default function Page() {
         return true;
       });
     }
-
+  
     setFilteredVendors(data);
   };
 

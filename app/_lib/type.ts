@@ -15,6 +15,7 @@ export interface Vendor {
   is_wallet_activated: boolean;
   is_deleted: boolean;
   is_verified: boolean;
+  is_suspended:boolean;
   notes: string;
   brand: Brand;
   kyc_compliance: KycCompliance;

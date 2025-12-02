@@ -97,12 +97,12 @@ function Page() {
           <p className='text-gray-500 text-xs'>Review and process incoming vendor applications</p>
         </div>
         <div className='flex gap-3 items-center'>
-          <button className='bg-inherit border border-black text-black py-[5px] px-2.5 w-fit text-xs'>
+          {/* <button className='bg-inherit border border-black text-black py-[5px] px-2.5 w-fit text-xs'>
             Filter Status
           </button>
           <button className='bg-inherit border border-black text-black py-[5px] px-2.5 w-fit text-xs'>
             Sort Date
-          </button>
+          </button> */}
         </div>
       </div>
 
