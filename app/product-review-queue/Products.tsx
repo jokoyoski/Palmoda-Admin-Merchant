@@ -13,7 +13,7 @@ import { useFetchSizes } from "../_lib/sizes";
 import { useFetchColors, addColor } from "../_lib/colors";
 import Image from 'next/image'
 import { Product, Vendor } from '../_lib/type'
-import { approveProduct, rejectProduct } from '../_lib/products';
+import { approveProduct, rejectProduct, requestCorrection } from '../_lib/products';
 import { toast } from 'react-toastify';
 import { FaL } from 'react-icons/fa6';
 import Link from 'next/link';
@@ -24,148 +24,170 @@ interface ProductProps {
   vendor: Vendor | null;
   id: string;
   products: Product[];
-
 }
 
-
-function Products({ vendor, id, products:initialProducts,  }: ProductProps) {
+function Products({ vendor, id, products: initialProducts }: ProductProps) {
   const [colors, setColors] = useState<string[]>([]);
-    const [sizes, setSizes] = useState<string[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState<string>("");
-    const [selectedSubCategory, setSelectedSubCategory] = useState<string>("");
-    const [gender, setGender] = useState<string[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [rejecting, setRejecting] = useState(false);
-    const [rejectReason, setRejectReason] = useState("");
-    const [approving, setApproving] = useState(false);
-    const [productQueue, setProductQueue] = useState<Product[]>(initialProducts);
-    // Use useEffect to update local state if the prop changes (e.g., after an initial fetch)
-    
-    const router = useRouter();
+  const [sizes, setSizes] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>("");
+  const [gender, setGender] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rejecting, setRejecting] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [reviewText, setReviewText] = useState(""); // ✅ Added review text state
+  const [approving, setApproving] = useState(false);
+  const [productQueue, setProductQueue] = useState<Product[]>(initialProducts);
+  const [requesting, setRequesting] = useState(false);
 
-    useEffect(() => {
-        setProductQueue(initialProducts);
-    }, [initialProducts]);
+  const router = useRouter();
 
-     const [queryParams, setQueryParams] = useState<CategoryQueryParams>({
-        page_number: 1,
-        page_size: 10,
-        filter: {
-          search_term: null,
-          countries: {
-            $in: [],
-          },
-        },
-        sort_field: "name",
-        sort_direction: 1,
-      });
-    
-      const {
-        data: categoriesArray = [],
-        isLoading,
-        isError,
-        error,
-      } = useCategories(queryParams);
-    
-    
-      const {
-        data: gendersArray = [],
-        isLoading: genderLoading,
-        isError: isGenderError,
-        error: genderError,
-      } = useFetchGenders();
-    
-      const {
-        data: sizesArray = [],
-        isLoading: sizesLoading,
-        isError: sizesIsError,
-        error: sizesError,
-      } = useFetchSizes();
-    
-      const {
-        data: colorsArray = [],
-        isLoading: colorsLoader,
-        isError: colorIsError,
-        error: colorError,
-      } = useFetchColors();
+  useEffect(() => {
+    setProductQueue(initialProducts);
+  }, [initialProducts]);
 
-        const pageSize = 3
-      const startIndex = (currentPage - 1) * pageSize;
+  const [queryParams, setQueryParams] = useState<CategoryQueryParams>({
+    page_number: 1,
+    page_size: 10,
+    filter: {
+      search_term: null,
+      countries: {
+        $in: [],
+      },
+    },
+    sort_field: "name",
+    sort_direction: 1,
+  });
+
+  const {
+    data: categoriesArray = [],
+    isLoading,
+    isError,
+    error,
+  } = useCategories(queryParams);
+
+  const {
+    data: gendersArray = [],
+    isLoading: genderLoading,
+    isError: isGenderError,
+    error: genderError,
+  } = useFetchGenders();
+
+  const {
+    data: sizesArray = [],
+    isLoading: sizesLoading,
+    isError: sizesIsError,
+    error: sizesError,
+  } = useFetchSizes();
+
+  const {
+    data: colorsArray = [],
+    isLoading: colorsLoader,
+    isError: colorIsError,
+    error: colorError,
+  } = useFetchColors();
+
+  const pageSize = 3;
+  const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const currentProducts = productQueue.slice(startIndex, endIndex);
 
   const totalPages = Math.ceil(productQueue.length / pageSize);
 
   const mapIdsToNames = (ids: string[], referenceArray: { _id: string; name: string }[]) => {
-  return ids
-    .map(id => referenceArray.find(ref => ref._id === id)?.name)
-    .filter(Boolean)
-    .join(", ") || "N/A";
-};
+    return ids
+      .map(id => referenceArray.find(ref => ref._id === id)?.name)
+      .filter(Boolean)
+      .join(", ") || "N/A";
+  };
 
-// For fabrics/materials
-const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
+  // For fabrics/materials
+  const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
 
   const updateProductStatus = (productId: string, newStatus: string) => {
-      setProductQueue(prevProducts =>
-        prevProducts.map(p =>
-          p._id === productId ? { ...p, status: newStatus } : p
-        )
-      );
-    };
+    setProductQueue(prevProducts =>
+      prevProducts.map(p =>
+        p._id === productId ? { ...p, status: newStatus } : p
+      )
+    );
+  };
 
-    const handeleApproval = async (vendorId: string, prodId: string) => {
-       try {
-         setApproving(true);
-         const res = await approveProduct(vendorId, prodId);
-         if(res.success){
-           toast.success(res.message || "Product approved successfully!");
-           // --- IMMEDIATE STATE UPDATE ---
-           updateProductStatus(prodId, "Approved");
-           // ------------------------------
-         } else {
-           toast.error(res.message || "Failed to approve product.");
-         }
-       } catch (error: any) {
-         toast.error(error?.message || "An error occurred during approval.")
-       }finally{
-         setApproving(false)
-       }
-    }
+  const handeleApproval = async (vendorId: string, prodId: string) => {
+    try {
+      setApproving(true);
+      const res = await approveProduct(vendorId, prodId);
+      if (res.success) {
+        toast.success(res.message || "Product approved successfully!");
+        // --- IMMEDIATE STATE UPDATE ---
+        updateProductStatus(prodId, "Approved");
+        // ------------------------------
+      } else {
+        toast.error(res.message || "Failed to approve product.");
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "An error occurred during approval.")
+    } finally {
+      setApproving(false)
+    }
+  }
 
-    const handleReject = async (vendorId:string, prodId: string, reason: string) => {
-       if (!reason.trim()) {
-         return toast.error("Please provide a rejection reason in the Review Notes.");
-       }
-       try {
-        setRejecting(true);
-         const res = await rejectProduct(vendorId, prodId, reason);
-         if(res.success){
-           toast.success(res.message || "Product rejected successfully!");
-           // --- IMMEDIATE STATE UPDATE ---
-           updateProductStatus(prodId, "Rejected");
-           // Clear reason after successful rejection
-           setRejectReason(""); 
-           // ------------------------------
-         } else {
-           toast.error(res.message || "Failed to reject product.");
-         }
-       } catch (error: any) {
-         toast.error(error?.message || "An error occurred during rejection.");
-       }finally{
-         setRejecting(false)
-       }
-    }
+  const handleReject = async (vendorId: string, prodId: string, reason: string) => {
+    if (!reason.trim()) {
+      return toast.error("Please provide a rejection reason in the Review Notes.");
+    }
+    try {
+      setRejecting(true);
+      const res = await rejectProduct(vendorId, prodId, reason);
+      if (res.success) {
+        toast.success(res.message || "Product rejected successfully!");
+        // --- IMMEDIATE STATE UPDATE ---
+        updateProductStatus(prodId, "Rejected");
+        // Clear reason after successful rejection
+        setRejectReason("");
+        // ------------------------------
+      } else {
+        toast.error(res.message || "Failed to reject product.");
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "An error occurred during rejection.");
+    } finally {
+      setRejecting(false)
+    }
+  }
+
+  const handleRequestCorrection = async (vendor_id: string, prodId: string, review: string) => {
+    if (!review.trim()) {
+      return toast.error("Please provide a review in the Review Notes.");
+    }
+    try {
+      setRequesting(true);
+      const res = await requestCorrection(vendor_id, prodId, review);
+      if (res.success) {
+        toast.success(res.message || "Request Correction Successful");
+        // Clear review text after successful request
+        setReviewText("");
+        // --- IMMEDIATE STATE UPDATE ---
+        //            updateProductStatus(prodId, "Approved");
+        // ------------------------------
+      } else {
+        toast.error(res.message || "Request Correction Failed");
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "Request Correction Failed");
+    } finally {
+      setRequesting(false)
+    }
+  }
 
   return (
-     <section className="bg-white px-4 mt-3.5 py-3">
-    <button
-  onClick={() => router.back()}
-  className="text-xs flex items-center gap-1 cursor-pointer text-gray-600 mb-5  hover:text-gray-800"
->
-  <FaArrowLeft />  
-  <span>Back to Vendor Details</span>
-</button>
+    <section className="bg-white px-4 mt-3.5 py-3">
+      <button
+        onClick={() => router.back()}
+        className="text-xs flex items-center gap-1 cursor-pointer text-gray-600 mb-5  hover:text-gray-800"
+      >
+        <FaArrowLeft />
+        <span>Back to Vendor Details</span>
+      </button>
 
       {currentProducts.map((item, index) => (
         <div key={index} className="p-3 border border-gray-200 mb-4">
@@ -190,18 +212,17 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
                 </p>
               </div>
             </div>
-           {item?.status === "Approved" && (
-  <h3 className='text-green-500 font-semibold text-xs'>Approved</h3>
-)}
+            {item?.status === "Approved" && (
+              <h3 className='text-green-500 font-semibold text-xs'>Approved</h3>
+            )}
 
-{item?.status === "Rejected" && (
-  <h3 className='text-red-500 font-semibold text-xs'>Rejected</h3>
-)}
+            {item?.status === "Rejected" && (
+              <h3 className='text-red-500 font-semibold text-xs'>Rejected</h3>
+            )}
 
-{item?.status !== "Approved" && item?.status !== "Rejected" && (
-  <h3 className="text-yellow-600 font-semibold text-xs">Pending Approval</h3>
-)}
-
+            {item?.status !== "Approved" && item?.status !== "Rejected" && (
+              <h3 className="text-yellow-600 font-semibold text-xs">Pending Approval</h3>
+            )}
           </div>
 
           {/* Product Details */}
@@ -238,26 +259,26 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
                 <div className="flex flex-col gap-3">
                   <h1 className="text-sm font-semibold text-black">Product Details</h1>
                   <p className="text-xs text-black flex gap-2">
-  <span className="font-semibold">Category:</span> {mapIdsToNames(item.categories, categoriesArray)}
-</p>
+                    <span className="font-semibold">Category:</span> {mapIdsToNames(item.categories, categoriesArray)}
+                  </p>
 
                   <p className="text-xs text-black flex gap-2"><span className="font-semibold">Color:</span>
-                  {mapIdsToNames(item.colors, colorsArray)}
+                    {mapIdsToNames(item.colors, colorsArray)}
                   </p>
                   <p className="text-xs text-black flex gap-2"><span className="font-semibold">
                     Sizes:</span> {mapIdsToNames(item.sizes, sizesArray)}</p>
                   <p className="text-xs text-black flex gap-2"><span className="font-semibold">
                     Material:</span> {formatFabrics(item.fabrics)}</p>
                   <p className="text-xs text-black flex gap-2"><span className="font-semibold">Origin:</span>
-                   {vendor?.kyc_compliance?.city}
-                   </p>
+                    {vendor?.kyc_compliance?.city}
+                  </p>
                 </div>
                 <div className="flex flex-col gap-3">
                   <h1 className="text-sm font-semibold text-black">Inventory Information</h1>
                   <p className="text-xs text-black flex gap-2"><span className="font-semibold">Stock:</span> {item.quantity} units</p>
                   <p className="text-xs text-black flex gap-2"><span className="font-semibold">Shipping:</span> 2–3 business days</p>
                   <p className="text-xs text-black flex gap-2"><span className="font-semibold">SKU:</span>
-                  {item?.sku}</p>
+                    {item?.sku}</p>
                   <p className="text-xs text-black flex gap-2"><span className="font-semibold">Margin:</span> 42%</p>
                   <p className="text-xs text-black flex gap-2"><span className="font-semibold">Return Policy:</span> 30 days</p>
                 </div>
@@ -271,37 +292,44 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
 
               <hr className="text-gray-200 my-6" />
               {/* Review Notes */}
-             {item?.status === "Approved" ? "" :  <div className="mt-8">
+              {item?.status === "Approved" ? "" : <div className="mt-8">
                 <h1 className="text-sm font-semibold text-black mb-2">Review Notes</h1>
                 <textarea
-                onChange={(e) => setRejectReason(e.target.value)}
+                  value={reviewText} // ✅ Connected to state
+                  onChange={(e) => setReviewText(e.target.value)} // ✅ Updates state
                   placeholder="Add notes or feedback about this product submission..."
                   className="w-full h-[120px] border border-gray-300 rounded-md text-xs p-3 focus:outline-none focus:ring-1 focus:ring-black resize-none"
                 ></textarea>
-              </div>}  
-             {item?.status === "Approved" ? "" : 
-             
-             <div className='flex gap-3 mt-4'>
-                 {/* <button className='px-5 py-2 text-xs font-semibold uppercase text-gray-700 border
+              </div>}
+              {item?.status === "Approved" ? "" :
+
+                <div className='flex gap-3 mt-4'>
+                  {/* <button className='px-5 py-2 text-xs font-semibold uppercase text-gray-700 border
                   border-gray-300 hover:bg-gray-100'> Flag for Review </button>  */}
                   <button
-                  onClick={() => handleReject(item?.vendor_id, item?._id, rejectReason)}
-                  className='px-5 py-2 text-xs font-semibold uppercase bg-red-600 border
+                    onClick={() => handleReject(item?.vendor_id, item?._id, reviewText)} // ✅ Uses reviewText
+                    className='px-5 py-2 text-xs font-semibold uppercase bg-red-600 border
                    border-red-400 text-white'>
-                    {rejecting ? "Rejecting": "Reject"}
-                   </button>
-                    <button className='px-5 py-2 text-xs font-semibold uppercase text-gray-700 border
-                     border-gray-300 hover:bg-gray-100'> Request Correction </button>
-               <button 
-               onClick={() => handeleApproval(item?.vendor_id,  item?._id)}
-               disabled={item?.status === "Approved"}
-               className={`px-5 py-2 text-xs font-semibold uppercase text-white bg-black hover:bg-gray-800
-               ${item?.status === "Approved" ? "cursor-not-allowed": ""}
+                    {rejecting ? "Rejecting" : "Reject"}
+                  </button>
+                  <button
+                    onClick={() => handleRequestCorrection(item?.vendor_id, item?._id, reviewText)} // ✅ Uses reviewText
+                    className='px-5 py-2 text-xs font-semibold uppercase text-gray-700 border
+                     border-gray-300 hover:bg-gray-100'>
+                      
+                       {requesting ? "Requesting" : "Request Correction"}
+                       
+                        </button>
+                  <button
+                    onClick={() => handeleApproval(item?.vendor_id, item?._id)}
+                    disabled={item?.status === "Approved"}
+                    className={`px-5 py-2 text-xs font-semibold uppercase text-white bg-black hover:bg-gray-800
+               ${item?.status === "Approved" ? "cursor-not-allowed" : ""}
                `}>
-               {approving ? "Approving" :   "Approve" }
-                 
-                 </button> 
-                 </div>}
+                    {approving ? "Approving" : "Approve"}
+
+                  </button>
+                </div>}
             </div>
           </div>
         </div>
@@ -309,29 +337,29 @@ const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
 
       {/* Pagination Buttons */}
       {/* Pagination Buttons */}
-<div className="flex justify-end gap-3 mt-6">
+      <div className="flex justify-end gap-3 mt-6">
 
-  {/* Show Prev only if NOT on first page */}
-  {currentPage > 1 && (
-    <button
-      className="px-5 py-2 text-xs font-semibold uppercase border border-gray-300 text-gray-700 hover:bg-gray-100"
-      onClick={() => setCurrentPage(prev => prev - 1)}
-    >
-      Prev
-    </button>
-  )}
+        {/* Show Prev only if NOT on first page */}
+        {currentPage > 1 && (
+          <button
+            className="px-5 py-2 text-xs font-semibold uppercase border border-gray-300 text-gray-700 hover:bg-gray-100"
+            onClick={() => setCurrentPage(prev => prev - 1)}
+          >
+            Prev
+          </button>
+        )}
 
-  {/* Show Next only if NOT on last page */}
-  {currentPage < totalPages && (
-    <button
-      className="px-5 py-2 text-xs font-semibold uppercase bg-black text-white hover:bg-gray-800"
-      onClick={() => setCurrentPage(prev => prev + 1)}
-    >
-      Next
-    </button>
-  )}
+        {/* Show Next only if NOT on last page */}
+        {currentPage < totalPages && (
+          <button
+            className="px-5 py-2 text-xs font-semibold uppercase bg-black text-white hover:bg-gray-800"
+            onClick={() => setCurrentPage(prev => prev + 1)}
+          >
+            Next
+          </button>
+        )}
 
-</div>
+      </div>
 
     </section>
   )

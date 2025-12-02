@@ -140,3 +140,29 @@ export const rejectProduct = async (vendor_id, product_id, reason) => {
     } 
 }
 
+export const requestCorrection = async (vendor_id, product_id , review) => {
+   try {
+      const token = localStorage.getItem("token");
+    if (!token) return console.log("No token found");
+
+    const res = await axios.post(`${backendUrl}/product/request-review`, {vendor_id, product_id, review}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return res.data;
+   } catch (error) {
+     if (error.response?.data?.message) {
+      return {
+        success: false,
+        message: error.response.data.message,
+      };
+    }
+
+    // fallback message
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    } 
+   } 
+}
