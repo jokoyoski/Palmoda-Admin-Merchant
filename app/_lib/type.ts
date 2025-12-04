@@ -144,6 +144,7 @@ export interface Notification {
   content: string;
   type: string; // e.g. "payout"
   vendor_id: string;
+  status: "unread" | "read";
   created_at: string; // e.g. "2025-11-29 00:48:47"
   details: NotificationDetails;
 }

@@ -14,11 +14,12 @@ import { IoMdInformationCircle } from "react-icons/io";
 import { BsGraphUp } from "react-icons/bs";
 import { useAuth } from "../_lib/AuthContext";
 import type { Notification as MyNotification } from "../_lib/type";
-import { getNotifications, readNotification } from "../_lib/notification";
+import { getNotifications, notificationCount, readNotification } from "../_lib/notification";
 
 function Sidebar() {
   const pathname = usePathname();
   const [notifications, setNotifications] = useState<MyNotification[]>([]);
+  const [count, setCount] = useState(0);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const {logout} = useAuth();
@@ -50,6 +51,22 @@ function Sidebar() {
   fetchNotifications();
 }, []);
 
+useEffect(() => {
+    const fetchNotifications = async () => {
+      setLoading(true);
+      try {
+        const res = await notificationCount();
+        setCount(res?.data?.count);
+      } catch (error: any) {
+        // toast.error(error?.message || "Failed to fetch notifications");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
 
   // Hide sidebar on login page
   if (pathname.includes("login")) {
@@ -77,7 +94,7 @@ function Sidebar() {
             pathname === href || pathname.startsWith(`${href}/`);
 
           return (
-           <>
+           
             <Link
               key={href}
               href={href}
@@ -91,7 +108,7 @@ function Sidebar() {
               {icon} {label}
             </Link>
             
-           </>
+          
           );
         })}
 
@@ -105,11 +122,11 @@ function Sidebar() {
     <FaBell />
     <span>Notifications</span>
 
-    {notifications.length > 0 && (
+    
       <span className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-        {notifications.length}
+        {count}
       </span>
-    )}
+   
   </div>
 </Link>
 
@@ -118,7 +135,7 @@ function Sidebar() {
         <hr className="my-3 border-gray-200" />
 
         <div className="flex flex-col gap-4 mt-auto">
-          <div className="bg-gray-100 text-gray-800 rounded-lg p-3 text-sm">
+          {/* <div className="bg-gray-100 text-gray-800 rounded-lg p-3 text-sm">
             <p className="font-medium flex items-center gap-1.5">
               <IoMdInformationCircle />
               Action Required
@@ -126,7 +143,7 @@ function Sidebar() {
             <p className="text-xs text-gray-600 mt-1">
               5 applications pending for over 48 hours
             </p>
-          </div>
+          </div> */}
 
           <h4
             onClick={logout}
