@@ -26,7 +26,7 @@ function Sidebar() {
 
   const links = [
     // { href: "/application-review", label: "Application Review", icon: <FiUserCheck /> },
-    { href: "/payouts", label: "Payouts", icon: <FaMoneyBills /> },
+    // { href: "/payouts", label: "Payouts", icon: <FaMoneyBills /> },
     {
       href: "/vendor-management",
       label: "Vendor Management",
