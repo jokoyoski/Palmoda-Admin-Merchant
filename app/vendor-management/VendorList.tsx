@@ -15,6 +15,7 @@ interface VendorListProps {
   businessType: string;
   setBusinessType: React.Dispatch<React.SetStateAction<string>>;
   kyc: string;
+  updateVendorStatus: (vendorId: string, isSuspended: boolean) => void;
   setKyc: React.Dispatch<React.SetStateAction<string>>;
   loading: boolean;
   onApplyFilters: () => void;
@@ -37,6 +38,7 @@ export default function VendorList({
   totalVendors,
   currentPage,
   onApplyFilters,
+  updateVendorStatus,
 }: VendorListProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -47,6 +49,7 @@ export default function VendorList({
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [suspending, setSuspending] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "active" | "pending" | "rejected">("all");
+  const [suspendingVendors, setSuspendingVendors] = useState<{ [key: string]: boolean }>({});
 
   const pageSize = 10;
 
@@ -79,83 +82,80 @@ export default function VendorList({
     }
   };
 
-  const handleSuspendVendor = async (vendorId: string, vendorName: string) => {
-    const result = await Swal.fire({
-      title: "Suspend Vendor?",
-      text: `Are you sure you want to suspend ${vendorName}? This action can be reversed later.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#000000",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "Yes, suspend",
-      cancelButtonText: "Cancel",
-    });
+  // Add this to your state
 
-    if (result.isConfirmed) {
-      try {
-        setSuspending(true);
-        const res = await suspendVendor(vendorId);
 
-        if (res?.success === false) {
-          toast.error(res.message || "Failed to suspend vendor");
-        } else {
-          toast.success("Vendor suspended successfully!");
-           setVendors((prev) =>
-        prev.map((v) =>
-          v._id === vendorId
-            ? { ...v, is_suspended: true, is_active: false }
-            : v
-        )
-      );
-          // onApplyFilters();
-        }
-      } catch (error: any) {
-        toast.error(error.message || "Failed to suspend vendor");
-      } finally {
-        setSuspending(false);
+// Suspend
+const handleSuspendVendor = async (vendorId: string, vendorName: string) => {
+  const result = await Swal.fire({
+    title: "Suspend Vendor?",
+    text: `Are you sure you want to suspend ${vendorName}? This action can be reversed later.`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#000000",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, suspend",
+    cancelButtonText: "Cancel",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      setSuspendingVendors((prev) => ({ ...prev, [vendorId]: true }));
+      const res = await suspendVendor(vendorId);
+
+      if (res?.success === false) {
+        toast.error(res.message || "Failed to suspend vendor");
+      } else {
+        toast.success("Vendor suspended successfully!");
+        setVendors((prev) =>
+          prev.map((v) =>
+            v._id === vendorId ? { ...v, is_suspended: true, is_active: false } : v
+          )
+        );
       }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to suspend vendor");
+    } finally {
+      setSuspendingVendors((prev) => ({ ...prev, [vendorId]: false }));
     }
-  };
-
-  const handleRevoke = async (vendorId: string, vendorName: string) => {
-      const result = await Swal.fire({
-      title: "Revoke Suspension?",
-      text: `Are you sure you want to revoke the suspension of ${vendorName}? This action can be reversed later.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#000000",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "Yes, Revoke",
-      cancelButtonText: "Cancel",
-    });
-
-     if (result.isConfirmed) {
-      try {
-        setSuspending(true);
-        const res = await revokeSuspension(vendorId);
-
-        if (res?.success === false) {
-          toast.error(res.message || "Failed to revove suspension");
-        } else {
-          toast.success("Vendor Suspension Revoked");
-          setVendors((prev) =>
-        prev.map((v) =>
-          v._id === vendorId
-            ? { ...v, is_suspended: false, is_active: true }
-            : v
-        )
-      );
-          // onApplyFilters();
-        }
-      } catch (error: any) {
-        toast.error(error.message || "Failed to revove suspension");
-      } finally {
-        setSuspending(false);
-      }
-    }
-
-
   }
+};
+
+// Revoke suspension
+const handleRevoke = async (vendorId: string, vendorName: string) => {
+  const result = await Swal.fire({
+    title: "Revoke Suspension?",
+    text: `Are you sure you want to revoke the suspension of ${vendorName}? This action can be reversed later.`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#000000",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, Revoke",
+    cancelButtonText: "Cancel",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      setSuspendingVendors((prev) => ({ ...prev, [vendorId]: true }));
+      const res = await revokeSuspension(vendorId);
+
+      if (res?.success === false) {
+        toast.error(res.message || "Failed to revoke suspension");
+      } else {
+        toast.success("Vendor Suspension Revoked");
+        setVendors((prev) =>
+          prev.map((v) =>
+            v._id === vendorId ? { ...v, is_suspended: false, is_active: true } : v
+          )
+        );
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to revoke suspension");
+    } finally {
+      setSuspendingVendors((prev) => ({ ...prev, [vendorId]: false }));
+    }
+  }
+};
 
   // Filter vendors based on active tab
   const getFilteredVendorsByTab = () => {
@@ -417,21 +417,28 @@ export default function VendorList({
                               >
                                 View
                               </Link>
-                              {!vendor.is_suspended && <button
-                                onClick={() => handleSuspendVendor(vendor._id, vendor.business_name)}
-                                disabled={suspending}
-                                className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100 disabled:opacity-50"
-                              >
-                                {suspending ? "..." : "Suspend"}
-                              </button>}
-                              {vendor.is_suspended && <button
-                                onClick={() => handleRevoke(vendor._id, vendor.business_name)}
-                                disabled={suspending}
-                                className="px-3 py-1 border text-black
-                                 bg-inherit text-xs w-fit hover:bg-gray-100 disabled:opacity-50"
-                              >
-                                {suspending ? "..." : "Revoke"}
-                              </button>}
+                             {!vendor.is_suspended && (
+  <button
+    onClick={() => handleSuspendVendor(vendor._id, vendor.business_name)
+      .then(() => updateVendorStatus(vendor._id, true))}
+    disabled={suspendingVendors[vendor._id]}
+    className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100 disabled:opacity-50"
+  >
+    {suspendingVendors[vendor._id] ? "Suspending..." : "Suspend"}
+  </button>
+)}
+
+{vendor.is_suspended && (
+  <button
+    onClick={() => handleRevoke(vendor._id, vendor.business_name)
+  .then(() => updateVendorStatus(vendor._id, false))}
+    disabled={suspendingVendors[vendor._id]}
+    className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100 disabled:opacity-50"
+  >
+    {suspendingVendors[vendor._id] ? "Revoking..." : "Revoke"}
+  </button>
+)}
+
                               <button
                                 onClick={() => {
                                   setSelectedVendorId(vendor._id);

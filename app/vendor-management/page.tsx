@@ -33,20 +33,15 @@ export default function Page() {
   };
 
    const updateVendorStatus = (vendorId: string, isSuspended: boolean) => {
-    setVendors(prevVendors => 
-      prevVendors.map(vendor => 
-        vendor._id === vendorId 
-          ? { ...vendor, is_suspended: isSuspended }
-          : vendor
-      )
-    );
-    // Re-run filters to update the view immediately
-    // Note: The filter logic in handleApplyFilters uses 'vendors' state, 
-    // so we call it after setVendors completes (or run the logic inline).
-    // For simplicity, we'll let the next render cycle handle the filter, 
-    // but a manual update is safer:
-    handleApplyFilters(); 
-  };
+  setVendors(prev =>
+    prev.map(v => v._id === vendorId ? { ...v, is_suspended: isSuspended, is_active: !isSuspended } : v)
+  );
+
+  setFilteredVendors(prev =>
+    prev.map(v => v._id === vendorId ? { ...v, is_suspended: isSuspended, is_active: !isSuspended } : v)
+  );
+};
+
 
   useEffect(() => {
     fetchVendors(currentPage);
@@ -132,6 +127,7 @@ export default function Page() {
           currentPage={currentPage}
           totalVendors={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
+          updateVendorStatus={updateVendorStatus}
         />
       </section>
     </ProtectedRoute>
