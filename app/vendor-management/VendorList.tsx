@@ -9,6 +9,7 @@ import Swal from "sweetalert2";
 
 interface VendorListProps {
   vendors: Vendor[];
+  setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
   search: string;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   businessType: string;
@@ -24,6 +25,7 @@ interface VendorListProps {
 
 export default function VendorList({
   vendors,
+  setVendors,
   search,
   setSearch,
   businessType,
@@ -98,7 +100,14 @@ export default function VendorList({
           toast.error(res.message || "Failed to suspend vendor");
         } else {
           toast.success("Vendor suspended successfully!");
-          onApplyFilters();
+           setVendors((prev) =>
+        prev.map((v) =>
+          v._id === vendorId
+            ? { ...v, is_suspended: true, is_active: false }
+            : v
+        )
+      );
+          // onApplyFilters();
         }
       } catch (error: any) {
         toast.error(error.message || "Failed to suspend vendor");
@@ -129,7 +138,14 @@ export default function VendorList({
           toast.error(res.message || "Failed to revove suspension");
         } else {
           toast.success("Vendor Suspension Revoked");
-          onApplyFilters();
+          setVendors((prev) =>
+        prev.map((v) =>
+          v._id === vendorId
+            ? { ...v, is_suspended: false, is_active: true }
+            : v
+        )
+      );
+          // onApplyFilters();
         }
       } catch (error: any) {
         toast.error(error.message || "Failed to revove suspension");

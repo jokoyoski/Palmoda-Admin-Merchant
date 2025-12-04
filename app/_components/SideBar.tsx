@@ -74,7 +74,7 @@ function Sidebar() {
 
           <h4
             onClick={logout}
-            className="flex items-center gap-3 text-red-500 hover:text-red-700"
+            className="flex items-center cursor-pointer gap-3 text-red-500 hover:text-red-700"
           >
             <FiLogOut /> Logout
           </h4>

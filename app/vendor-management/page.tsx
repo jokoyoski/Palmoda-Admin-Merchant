@@ -32,6 +32,22 @@ export default function Page() {
     setLoading(false);
   };
 
+   const updateVendorStatus = (vendorId: string, isSuspended: boolean) => {
+    setVendors(prevVendors => 
+      prevVendors.map(vendor => 
+        vendor._id === vendorId 
+          ? { ...vendor, is_suspended: isSuspended }
+          : vendor
+      )
+    );
+    // Re-run filters to update the view immediately
+    // Note: The filter logic in handleApplyFilters uses 'vendors' state, 
+    // so we call it after setVendors completes (or run the logic inline).
+    // For simplicity, we'll let the next render cycle handle the filter, 
+    // but a manual update is safer:
+    handleApplyFilters(); 
+  };
+
   useEffect(() => {
     fetchVendors(currentPage);
   }, [currentPage]);
@@ -104,6 +120,7 @@ export default function Page() {
 
         <VendorList
           vendors={filteredVendors}
+          setVendors={setVendors}
           search={search}
           setSearch={setSearch}
           businessType={businessType}
