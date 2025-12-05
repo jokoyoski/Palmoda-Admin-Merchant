@@ -48,50 +48,55 @@ export default function Page() {
   }, [currentPage]);
 
   // FILTERING LOGIC
-  const handleApplyFilters = () => {
-    let data = [...vendors];
+ const handleApplyFilters = (overrides?: { search?: string; businessType?: string; kyc?: string }) => {
+  let data = [...vendors];
 
-    // Search
-    if (search.trim()) {
-      const lower = search.toLowerCase();
-      data = data.filter(
-        (v) =>
-          v.business_name.toLowerCase().includes(lower) ||
-          v.contact_person_name.toLowerCase().includes(lower) ||
-          v.email.toLowerCase().includes(lower)
-      );
-    }
+  const currentSearch = overrides?.search ?? search;
+  const currentBusinessType = overrides?.businessType ?? businessType;
+  const currentKyc = overrides?.kyc ?? kyc;
 
-    // Business type
-    if (businessType !== "Any") {
-      data = data.filter(
-        (v) => v.kyc_compliance.business_type === businessType
-      );
-    }
+  // Apply search
+  if (currentSearch.trim()) {
+    const lower = currentSearch.toLowerCase();
+    data = data.filter(
+      (v) =>
+        v.business_name.toLowerCase().includes(lower) ||
+        v.contact_person_name.toLowerCase().includes(lower) ||
+        v.email.toLowerCase().includes(lower)
+    );
+  }
 
-    // KYC status
-    if (kyc !== "Any") {
-      data = data.filter((v) => {
-        const isVerified =
-          v.is_business_verified &&
-          v.is_identity_verified &&
-          v.is_bank_information_verified;
+  // Business type
+  if (currentBusinessType !== "Any") {
+    data = data.filter(
+      (v) => v.kyc_compliance.business_type === currentBusinessType
+    );
+  }
 
-        if (kyc === "Verified") return isVerified;
-        if (kyc === "Unverified") return !isVerified;
-        if (kyc === "Pending") {
-          return (
-            !v.is_business_verified ||
-            !v.is_identity_verified ||
-            !v.is_bank_information_verified
-          );
-        }
-        return true;
-      });
-    }
-  
-    setFilteredVendors(data);
-  };
+  // KYC
+  if (currentKyc !== "Any") {
+    data = data.filter((v) => {
+      const isVerified =
+        v.is_business_verified &&
+        v.is_identity_verified &&
+        v.is_bank_information_verified;
+
+      if (currentKyc === "Verified") return isVerified;
+      if (currentKyc === "Unverified") return !isVerified;
+      if (currentKyc === "Pending") {
+        return (
+          !v.is_business_verified ||
+          !v.is_identity_verified ||
+          !v.is_bank_information_verified
+        );
+      }
+      return true;
+    });
+  }
+
+  setFilteredVendors(data);
+};
+
 
   return (
     <ProtectedRoute>
@@ -126,6 +131,7 @@ export default function Page() {
           onApplyFilters={handleApplyFilters}
           currentPage={currentPage}
           totalVendors={totalPages}
+           setFilteredVendors={setFilteredVendors}
           onPageChange={(page) => setCurrentPage(page)}
           updateVendorStatus={updateVendorStatus}
         />

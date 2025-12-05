@@ -10,6 +10,7 @@ import Swal from "sweetalert2";
 interface VendorListProps {
   vendors: Vendor[];
   setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
+    setFilteredVendors: React.Dispatch<React.SetStateAction<Vendor[]>>; 
   search: string;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   businessType: string;
@@ -27,6 +28,7 @@ interface VendorListProps {
 export default function VendorList({
   vendors,
   setVendors,
+  setFilteredVendors,
   search,
   setSearch,
   businessType,
@@ -327,16 +329,20 @@ const handleRevoke = async (vendorId: string, vendorName: string) => {
             >
               Apply
             </button>
-            <button
-              className="border border-gray-300 w-[100px] text-gray-700 text-sm py-2 px-4"
-              onClick={() => {
-                setSearch("");
-                setBusinessType("Any");
-                setKyc("Any");
-              }}
-            >
-              Clear
-            </button>
+          <button
+  className="border border-gray-300 cursor-pointer w-[100px] text-gray-700 text-sm py-2 px-4"
+  onClick={() => {
+    setSearch("");
+    setBusinessType("Any");
+    setKyc("Any");
+    onApplyFilters();
+  }}
+>
+  Clear
+</button>
+
+
+
           </div>
         </div>
 

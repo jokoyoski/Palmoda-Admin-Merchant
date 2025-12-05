@@ -637,14 +637,14 @@ const handleMessage = async () => {
                        
                         
                         <button 
-                         disabled={vendor?.is_identity_verified} // Use a more appropriate check here
+                         disabled={true} // Use a more appropriate check here
                          className='w-full bg-inherit py-2 px-4 text-xs border
-                          border-red-500 text-red-500 hover:bg-red-50 transition duration-150'>
+                          border-red-500 text-red-500 disbled:cursor-not-allowed hover:bg-red-50 transition duration-150'>
                          Reject Application
                         </button>
                         <button 
-                         disabled={vendor?.is_identity_verified} // Use a more appropriate check here
-                         className='bg-gray-200 text-gray-600 text-xs py-2 px-4 hover:bg-gray-300 transition duration-150
+                         disabled={true} // Use a more appropriate check here
+                         className='bg-gray-200 text-gray-600 disbled:cursor-not-allowed text-xs py-2 px-4 hover:bg-gray-300 transition duration-150
                          '>Request More Information</button>
 
                          <div className='mt-4 flex flex-col gap-3'>

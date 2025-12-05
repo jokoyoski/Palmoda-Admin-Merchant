@@ -21,13 +21,14 @@ function Page() {
     try {
       const res = await getNotifications(page);
 
-      const notifs: MyNotification[] = res?.data?.notifications || [];
-      setNotifications(notifs);
+     const notificationsArray: MyNotification[] = res?.data?.notifications || [];
+setNotifications(notificationsArray);
 
-      const totalItems = res?.data?.total_items || 0;
-      const pageSize = res?.data?.page_size || 10;
+const pageSize = res?.data?.page_size || 10;
+const totalItems = Math.max(res?.data?.total_items || 0, notificationsArray.length);
 
-      setTotalPages(Math.ceil(totalItems / pageSize));
+setTotalPages(Math.ceil(totalItems / pageSize));
+
     } catch (error: any) {
       toast.error(error?.message || "Failed to fetch notifications");
     } finally {
