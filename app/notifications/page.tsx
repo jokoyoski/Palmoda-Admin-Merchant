@@ -26,7 +26,7 @@ function Page() {
     readMutation.mutate(id, {
       onSuccess: () => {
         toast.success("Notification marked as read");
-        setExpandedId(null); // Collapse if open
+        setExpandedId(null);
       },
       onError: (error: any) => {
         toast.error(error?.message || "Failed to mark notification as read");
