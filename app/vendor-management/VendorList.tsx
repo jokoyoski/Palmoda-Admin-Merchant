@@ -18,7 +18,11 @@ interface VendorListProps {
   setKyc: React.Dispatch<React.SetStateAction<string>>;
   
   loading: boolean;
-  onApplyFilters: () => void;
+ onApplyFilters: (overrides?: {
+    search?: string;
+    businessType?: string;
+    kyc?: string;
+  }) => void;
 
   currentPage: number;
   totalVendors: number;
@@ -290,22 +294,30 @@ const handleRevoke = async (vendorId: string, vendorName: string) => {
 
           <div className="flex gap-4 justify-center mt-4">
             <button
-              onClick={onApplyFilters}
+              onClick={() => onApplyFilters()}
               className="bg-black text-white w-[100px] text-sm py-2 px-4"
             >
               Apply
             </button>
           <button
-  className="border border-gray-300 cursor-pointer w-[100px] text-gray-700 text-sm py-2 px-4"
-  onClick={() => {
-    setSearch("");
-    setBusinessType("Any");
-    setKyc("Any");
-    onApplyFilters();
-  }}
->
-  Clear
-</button>
+              className="border border-gray-300 cursor-pointer w-[100px] text-gray-700 text-sm py-2 px-4"
+              onClick={() => {
+                // 1. Reset local state variables
+                setSearch("");
+                setBusinessType("Any"); // Assuming you want to reset businessType too
+                setKyc("Any");
+
+                // 2. Call onApplyFilters and pass the cleared values 
+                //    explicitly to ensure the filter runs instantly with the reset data.
+                onApplyFilters({
+                  search: "",
+                  businessType: "Any",
+                  kyc: "Any",
+                });
+              }}
+            >
+              Clear
+            </button>
 
 
 
