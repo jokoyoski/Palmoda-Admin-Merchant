@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import VendorList from "./VendorList";
 import { Vendor } from "../_lib/type";
 import ProtectedRoute from "../_components/ProtectedRoute";
-import {
+import { 
   useVendors,
   useSuspendVendor,
   useRevokeSuspension 
