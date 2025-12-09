@@ -3,10 +3,10 @@ import React, { useEffect, useState } from "react";
 import VendorList from "./VendorList";
 import { Vendor } from "../_lib/type";
 import ProtectedRoute from "../_components/ProtectedRoute";
-import { 
+import {
   useVendors,
   useSuspendVendor,
-  useRevokeSuspension 
+  useRevokeSuspension,
 } from "../_lib/useVendors";
 
 export default function Page() {
@@ -18,15 +18,18 @@ export default function Page() {
 
   // React Query Data
   const { data, isLoading, isError } = useVendors(currentPage);
-  const vendors = data?.vendors || [];
+  // const vendors = data?.vendors || [];
   const totalPages = data?.totalPages || 1;
 
+  const [filteredVendors, setFilteredVendors] = useState<Vendor[]>([]);
+
   // Filtered Vendors
-  const [filteredVendors, setFilteredVendors] = useState<Vendor[]>(vendors);
 
   useEffect(() => {
-    setFilteredVendors(vendors);
-  }, [vendors]);
+    if (data?.vendors) {
+      setFilteredVendors(data.vendors);
+    }
+  }, [data]);
 
   // FILTER LOGIC
   const handleApplyFilters = (overrides?: {
@@ -34,7 +37,7 @@ export default function Page() {
     businessType?: string;
     kyc?: string;
   }) => {
-    let dataToFilter = [...vendors];
+    let dataToFilter = [...data?.vendors];
 
     const s = overrides?.search ?? search;
     const bt = overrides?.businessType ?? businessType;
@@ -66,6 +69,10 @@ export default function Page() {
           v.is_identity_verified &&
           v.is_bank_information_verified;
 
+        const suspended = v.is_suspended;
+
+        const deleted = v.is_deleted;
+
         if (k === "Verified") return verified;
         if (k === "Unverified") return !verified;
         if (k === "Pending") {
@@ -75,6 +82,8 @@ export default function Page() {
             !v.is_bank_information_verified
           );
         }
+        if (k === "Suspended") return suspended;
+        if (k === "Deleted") return deleted;
       });
     }
 

@@ -16,9 +16,9 @@ interface VendorListProps {
   setBusinessType: React.Dispatch<React.SetStateAction<string>>;
   kyc: string;
   setKyc: React.Dispatch<React.SetStateAction<string>>;
-  
+
   loading: boolean;
- onApplyFilters: (overrides?: {
+  onApplyFilters: (overrides?: {
     search?: string;
     businessType?: string;
     kyc?: string;
@@ -31,7 +31,6 @@ interface VendorListProps {
   onSuspend: (vendorId: string) => void;
   onRevoke: (vendorId: string) => void;
 }
-
 
 export default function VendorList({
   vendors,
@@ -58,8 +57,12 @@ export default function VendorList({
   const [showPopup, setShowPopup] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [suspending, setSuspending] = useState(false);
-  const [activeTab, setActiveTab] = useState<"all" | "active" | "pending" | "rejected">("all");
-  const [suspendingVendors, setSuspendingVendors] = useState<{ [key: string]: boolean }>({});
+  const [activeTab, setActiveTab] = useState<
+    "all" | "active" | "pending" | "rejected"
+  >("all");
+  const [suspendingVendors, setSuspendingVendors] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   const pageSize = 10;
 
@@ -72,7 +75,12 @@ export default function VendorList({
 
     try {
       setSending(true);
-      const res = await sendMessage(selectedVendorId, title, content, message_type);
+      const res = await sendMessage(
+        selectedVendorId,
+        title,
+        content,
+        message_type
+      );
 
       if (res?.success === false) {
         toast.error(res.message);
@@ -94,40 +102,38 @@ export default function VendorList({
 
   // Add this to your state
 
+  // Suspend
+  const handleSuspendVendor = async (vendorId: string, vendorName: string) => {
+    const result = await Swal.fire({
+      title: "Suspend Vendor?",
+      text: `Suspend ${vendorName}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#000",
+    });
 
-// Suspend
-const handleSuspendVendor = async (vendorId: string, vendorName: string) => {
-  const result = await Swal.fire({
-    title: "Suspend Vendor?",
-    text: `Suspend ${vendorName}?`,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#000",
-  });
+    if (result.isConfirmed) {
+      onSuspend(vendorId); // ⭐ TRIGGER REACT QUERY MUTATION
+    }
+  };
 
-  if (result.isConfirmed) {
-    onSuspend(vendorId); // ⭐ TRIGGER REACT QUERY MUTATION
-  }
-};
+  // Revoke suspension
+  const handleRevoke = async (vendorId: string, vendorName: string) => {
+    const result = await Swal.fire({
+      title: "Revoke Suspension?",
+      text: `Are you sure you want to revoke the suspension of ${vendorName}? This action can be reversed later.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#000000",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, Revoke",
+      cancelButtonText: "Cancel",
+    });
 
-
-// Revoke suspension
-const handleRevoke = async (vendorId: string, vendorName: string) => {
-  const result = await Swal.fire({
-    title: "Revoke Suspension?",
-    text: `Are you sure you want to revoke the suspension of ${vendorName}? This action can be reversed later.`,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#000000",
-    cancelButtonColor: "#6b7280",
-    confirmButtonText: "Yes, Revoke",
-    cancelButtonText: "Cancel",
-  });
-
-  if (result.isConfirmed) {
-     onRevoke(vendorId)
-  }
-};
+    if (result.isConfirmed) {
+      onRevoke(vendorId);
+    }
+  };
 
   // Filter vendors based on active tab
   const getFilteredVendorsByTab = () => {
@@ -221,7 +227,9 @@ const handleRevoke = async (vendorId: string, vendorName: string) => {
             <option>Ghana</option>
           </select> */}
 
-          <label className="text-xs font-medium text-gray-600">Kyc Status</label>
+          <label className="text-xs font-medium text-gray-600">
+            Kyc Status
+          </label>
           <select
             value={kyc}
             onChange={(e) => setKyc(e.target.value)}
@@ -231,6 +239,8 @@ const handleRevoke = async (vendorId: string, vendorName: string) => {
             <option value="Verified">Verified</option>
             <option value="Pending">Pending</option>
             <option value="Unverified">Unverified</option>
+            <option value="Suspended">Suspended</option>
+            <option value="Deleted">Deleted</option>
           </select>
 
           {/* <label className="text-xs font-medium text-gray-600">Document Missing</label>
@@ -299,7 +309,7 @@ const handleRevoke = async (vendorId: string, vendorName: string) => {
             >
               Apply
             </button>
-          <button
+            <button
               className="border border-gray-300 cursor-pointer w-[100px] text-gray-700 text-sm py-2 px-4"
               onClick={() => {
                 // 1. Reset local state variables
@@ -307,7 +317,7 @@ const handleRevoke = async (vendorId: string, vendorName: string) => {
                 setBusinessType("Any"); // Assuming you want to reset businessType too
                 setKyc("Any");
 
-                // 2. Call onApplyFilters and pass the cleared values 
+                // 2. Call onApplyFilters and pass the cleared values
                 //    explicitly to ensure the filter runs instantly with the reset data.
                 onApplyFilters({
                   search: "",
@@ -318,9 +328,6 @@ const handleRevoke = async (vendorId: string, vendorName: string) => {
             >
               Clear
             </button>
-
-
-
           </div>
         </div>
 
@@ -329,112 +336,155 @@ const handleRevoke = async (vendorId: string, vendorName: string) => {
           <table className="min-w-full table-fixed text-sm">
             <thead className="font-semibold text-gray-900 sticky top-0 bg-white">
               <tr>
-                <th className="py-3 px-4 text-left font-semibold w-[12%]">Vendor</th>
-                <th className="py-3 px-4 text-left font-semibold w-[8%]">KYC</th>
-                <th className="py-3 px-4 text-left font-semibold w-[8%]">Docs</th>
-                <th className="py-3 px-4 text-left font-semibold w-[8%]">Products</th>
-                <th className="py-3 px-4 text-left font-semibold w-[10%]">Sales MTD</th>
-                <th className="py-3 px-4 text-left font-semibold w-[8%]">Rating</th>
-                <th className="py-3 px-4 text-left font-semibold w-[10%]">Last Activity</th>
-                <th className="py-3 px-4 text-left font-semibold w-[6%]">Flag</th>
-                <th className="py-3 px-4 text-left font-semibold w-[10%]">Status</th>
-                <th className="py-3 px-4 text-left font-semibold w-[10%]">Action</th>
+                <th className="py-3 px-4 text-left font-semibold w-[12%]">
+                  Vendor
+                </th>
+                <th className="py-3 px-4 text-left font-semibold w-[8%]">
+                  KYC
+                </th>
+                <th className="py-3 px-4 text-left font-semibold w-[8%]">
+                  Verified Docs
+                </th>
+                <th className="py-3 px-4 text-left font-semibold w-[8%]">
+                  Products
+                </th>
+                <th className="py-3 px-4 text-left font-semibold w-[10%]">
+                  Sales MTD
+                </th>
+                <th className="py-3 px-4 text-left font-semibold w-[8%]">
+                  Rating
+                </th>
+                <th className="py-3 px-4 text-left font-semibold w-[10%]">
+                  Last Activity
+                </th>
+                <th className="py-3 px-4 text-left font-semibold w-[6%]">
+                  Flag
+                </th>
+                <th className="py-3 px-4 text-left font-semibold w-[10%]">
+                  Status
+                </th>
+                <th className="py-3 px-4 text-left font-semibold w-[10%]">
+                  Action
+                </th>
               </tr>
             </thead>
 
             <tbody>
-              {loading
-                ? skeletonRows.map((_, i) => (
-                    <tr key={i} className="border-b border-gray-100">
-                      {Array.from({ length: 10 }).map((_, j) => (
-                        <td key={j} className="py-3 px-4">
-                          <div className="h-3 bg-gray-200 rounded animate-pulse"></div>
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                : filteredByTab.length === 0 ? (
-                    <tr>
-                      <td colSpan={10} className="py-8 text-center text-gray-500">
-                        No vendors found for this category
+              {loading ? (
+                skeletonRows.map((_, i) => (
+                  <tr key={i} className="border-b border-gray-100">
+                    {Array.from({ length: 10 }).map((_, j) => (
+                      <td key={j} className="py-3 px-4">
+                        <div className="h-3 bg-gray-200 rounded animate-pulse"></div>
                       </td>
-                    </tr>
-                  ) : (
-                    filteredByTab
-                      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-                      .map((vendor) => (
-                        <tr
-                          key={vendor._id}
-                          className="border-b border-gray-100 hover:bg-gray-50 transition"
-                        >
-                          <td className="py-3 px-4">{vendor.business_name}</td>
-                          <td className="py-3 px-4">
-                            {vendor.is_business_verified &&
-                            vendor.is_identity_verified &&
-                            vendor.is_bank_information_verified
-                              ? "Verified"
-                              : "Unverified"}
-                          </td>
-                          <td className="py-3 px-4">5</td>
-                          <td className="py-3 px-4">0</td>
-                          <td className="py-3 px-4">₦0</td>
-                          <td className="py-3 px-4">0</td>
-                          <td className="py-3 px-4 text-xs">{vendor.updated_at}</td>
-                          <td className="py-3 px-4"></td>
-                          <td className="py-3 px-4">
-                            <span
-                              className={`px-3 py-1 text-xs font-medium rounded-md 
+                    ))}
+                  </tr>
+                ))
+              ) : filteredByTab.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="py-8 text-center text-gray-500">
+                    No vendors found for this category
+                  </td>
+                </tr>
+              ) : (
+                filteredByTab
+                  .sort(
+                    (a, b) =>
+                      new Date(b.updated_at).getTime() -
+                      new Date(a.updated_at).getTime()
+                  )
+                  .map((vendor) => (
+                    <tr
+                      key={vendor._id}
+                      className="border-b border-gray-100 hover:bg-gray-50 transition"
+                    >
+                      <td className="py-3 px-4">{vendor.business_name}</td>
+                      <td className="py-3 px-4">
+                        {vendor.is_business_verified &&
+                        vendor.is_identity_verified &&
+                        vendor.is_bank_information_verified
+                          ? "Verified"
+                          : "Unverified"}
+                      </td>
+                      <td className="py-3 px-4">
+                        {
+                          [
+                            vendor.is_business_verified,
+                            vendor.is_identity_verified,
+                            vendor.is_bank_information_verified,
+                          ].filter(Boolean).length
+                        }
+                      </td>
+                      <td className="py-3 px-4">0</td>
+                      <td className="py-3 px-4">₦0</td>
+                      <td className="py-3 px-4">0</td>
+                      <td className="py-3 px-4 text-xs">{vendor.updated_at}</td>
+                      <td className="py-3 px-4"></td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`px-3 py-1 text-xs font-medium rounded-md 
                                 ${
                                   vendor.is_active
                                     ? "bg-green-100 text-green-700"
                                     : "bg-orange-100 text-orange-700"
                                 }`}
+                        >
+                          {vendor.is_active ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/application-review/${vendor?._id}`}
+                            className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100"
+                          >
+                            View
+                          </Link>
+                          {!vendor.is_suspended && (
+                            <button
+                              onClick={() =>
+                                handleSuspendVendor(
+                                  vendor._id,
+                                  vendor.business_name
+                                )
+                              }
+                              disabled={suspendingVendors[vendor._id]}
+                              className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100 disabled:opacity-50"
                             >
-                              {vendor.is_active ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <Link
-                                href={`/application-review/${vendor?._id}`}
-                                className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100"
-                              >
-                                View
-                              </Link>
-                             {!vendor.is_suspended && (
-  <button
-    onClick={() => handleSuspendVendor(vendor._id, vendor.business_name)}
-    disabled={suspendingVendors[vendor._id]}
-    className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100 disabled:opacity-50"
-  >
-    {suspendingVendors[vendor._id] ? "Suspending..." : "Suspend"}
-  </button>
-)}
+                              {suspendingVendors[vendor._id]
+                                ? "Suspending..."
+                                : "Suspend"}
+                            </button>
+                          )}
 
-{vendor.is_suspended && (
-  <button
-    onClick={() => handleRevoke(vendor._id, vendor.business_name)}
-    disabled={suspendingVendors[vendor._id]}
-    className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100 disabled:opacity-50"
-  >
-    {suspendingVendors[vendor._id] ? "Revoking..." : "Revoke"}
-  </button>
-)}
+                          {vendor.is_suspended && (
+                            <button
+                              onClick={() =>
+                                handleRevoke(vendor._id, vendor.business_name)
+                              }
+                              disabled={suspendingVendors[vendor._id]}
+                              className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100 disabled:opacity-50"
+                            >
+                              {suspendingVendors[vendor._id]
+                                ? "Revoking..."
+                                : "Revoke"}
+                            </button>
+                          )}
 
-                              <button
-                                onClick={() => {
-                                  setSelectedVendorId(vendor._id);
-                                  setShowPopup(true);
-                                }}
-                                className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100"
-                              >
-                                Message
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                  )}
+                          <button
+                            onClick={() => {
+                              setSelectedVendorId(vendor._id);
+                              setShowPopup(true);
+                            }}
+                            className="px-3 py-1 border text-black bg-inherit text-xs hover:bg-gray-100"
+                          >
+                            Message
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+              )}
             </tbody>
           </table>
 
@@ -470,7 +520,8 @@ const handleRevoke = async (vendorId: string, vendorName: string) => {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
           <div className="bg-white p-6 rounded-xl w-[90%] max-w-md shadow-2xl border border-gray-200">
             <h2 className="text-xl font-bold mb-4">
-              Message: {vendors.find((v) => v._id === selectedVendorId)?.business_name}
+              Message:{" "}
+              {vendors.find((v) => v._id === selectedVendorId)?.business_name}
             </h2>
 
             <input

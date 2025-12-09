@@ -3,24 +3,33 @@ import React, { useState } from "react";
 import type { Notification } from "../_lib/type";
 import { toast } from "react-toastify";
 import ProtectedRoute from "../_components/ProtectedRoute";
-import { useNotificationList, useNotificationCount, useReadNotification } from "../_lib/useNotifications";
+import {
+  useNotificationList,
+  useNotificationCount,
+  useReadNotification,
+} from "../_lib/useNotifications";
 
 function Page() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // React Query hooks
-  const { data: listData, isLoading: loadingList } = useNotificationList(currentPage);
+  const { data: listData, isLoading: loadingList } =
+    useNotificationList(currentPage);
   const { data: countData } = useNotificationCount();
   const readMutation = useReadNotification();
 
   const notifications: Notification[] = listData?.data?.notifications || [];
   const pageSize = listData?.data?.page_size || 10;
-  const totalItems = Math.max(listData?.data?.total_items || 0, notifications.length);
+  const totalItems = Math.max(
+    listData?.data?.total_items || 0,
+    notifications.length
+  );
   const totalPages = Math.ceil(totalItems / pageSize);
   const count = countData?.data?.count || 0;
 
-  const handleToggle = (id: string) => setExpandedId(prev => (prev === id ? null : id));
+  const handleToggle = (id: string) =>
+    setExpandedId((prev) => (prev === id ? null : id));
 
   const handleMarkAsRead = async (id: string) => {
     readMutation.mutate(id, {
@@ -43,8 +52,11 @@ function Page() {
 
         {loadingList ? (
           <div className="space-y-2">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="animate-pulse h-12 bg-gray-200 rounded-md"></div>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse h-12 bg-gray-200 rounded-md"
+              ></div>
             ))}
           </div>
         ) : notifications.length === 0 ? (
@@ -53,35 +65,64 @@ function Page() {
           <>
             {/* Notification List */}
             <div className="space-y-2">
-              {notifications.map(notif => (
+              {notifications.map((notif) => (
                 <div
                   key={notif._id}
                   className={`rounded-md p-3 cursor-pointer transition
-                    ${notif.status === "unread" ? "bg-yellow-50 border-0" : "bg-white border border-gray-200"}
+                    ${notif.status === "unread" ? "bg-gray-700 border-0" : "bg-white border border-gray-200"}
                   `}
                 >
-                  <div className="flex justify-between items-center" onClick={() => handleToggle(notif._id)}>
+                  <div
+                    className="flex justify-between items-center"
+                    onClick={() => handleToggle(notif._id)}
+                  >
                     <div>
-                      <h1 className="text-sm font-semibold text-black">{notif.title}</h1>
-                      <p className="text-xs text-gray-500">{notif.content}</p>
-                      <p className="text-xs my-1 text-gray-500">Click to see details</p>
+                      <h1
+                        className={`text-sm font-semibold ${notif.status === "unread" ? "text-white" : "text-black"} `}
+                      >
+                        {notif.title}
+                      </h1>
+                      <p
+                        className={`text-xs ${notif.status === "unread" ? "text-white" : "text-gray-500"} `}
+                      >
+                        {notif.content}
+                      </p>
+                      <p
+                        className={`text-xs my-1 ${notif.status === "unread" ? "text-white" : "text-gray-500"}`}
+                      >
+                        Click to see details
+                      </p>
                     </div>
-                    <span className="text-xs text-gray-500">
+                    <span
+                      className={`text-xs ${notif.status === "unread" ? "text-white" : "text-gray-500"} `}
+                    >
                       {new Date(notif.created_at).toLocaleDateString()}
                     </span>
                   </div>
 
                   {expandedId === notif._id && (
-                    <div className="mt-2 text-xs text-gray-600 space-y-1">
+                    <div
+                      className={`mt-2 text-xs ${notif.status === "unread" ? "text-white" : "text-gray-600"} space-y-1`}
+                    >
                       <p>{notif.content}</p>
 
                       {notif.details && (
                         <div className="border-t border-gray-200 pt-2 mt-2 space-y-1">
-                          <p><strong>Amount:</strong> NGN{notif.details.amount}</p>
-                          <p><strong>Status:</strong> {notif.details.status}</p>
-                          <p><strong>Reference:</strong> {notif.details.transaction_reference}</p>
+                          <p>
+                            <strong>Amount:</strong> NGN{notif.details.amount}
+                          </p>
+                          <p>
+                            <strong>Status:</strong> {notif.details.status}
+                          </p>
+                          <p>
+                            <strong>Reference:</strong>{" "}
+                            {notif.details.transaction_reference}
+                          </p>
                           {notif.details.rejection_reason && (
-                            <p><strong>Rejection Reason:</strong> {notif.details.rejection_reason}</p>
+                            <p>
+                              <strong>Rejection Reason:</strong>{" "}
+                              {notif.details.rejection_reason}
+                            </p>
                           )}
                         </div>
                       )}
@@ -89,7 +130,7 @@ function Page() {
                       {notif.status === "unread" && (
                         <button
                           onClick={() => handleMarkAsRead(notif._id)}
-                          className="mt-2 px-3 py-1 cursor-pointer text-xs text-white bg-black rounded"
+                          className="mt-2 px-3 py-1 cursor-pointer text-xs text-white bg-gray-900 rounded"
                         >
                           Mark as Read
                         </button>
@@ -104,7 +145,7 @@ function Page() {
             <div className="flex items-center justify-between gap-4 mt-6">
               <button
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => p - 1)}
+                onClick={() => setCurrentPage((p) => p - 1)}
                 className={`px-4 py-2 text-sm rounded border ${
                   currentPage === 1
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -120,7 +161,7 @@ function Page() {
 
               <button
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => p + 1)}
+                onClick={() => setCurrentPage((p) => p + 1)}
                 className={`px-4 py-2 text-sm rounded border ${
                   currentPage === totalPages
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed"

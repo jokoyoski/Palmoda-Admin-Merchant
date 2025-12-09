@@ -1,12 +1,7 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import {
-  FiUserCheck,
-  FiUsers,
-  FiSettings,
-  FiLogOut,
-} from "react-icons/fi";
+import { FiUserCheck, FiUsers, FiSettings, FiLogOut } from "react-icons/fi";
 import { FaBell, FaMoneyBill } from "react-icons/fa";
 import { MdOutlineRateReview } from "react-icons/md";
 import { usePathname } from "next/navigation";
@@ -14,7 +9,11 @@ import { IoMdInformationCircle } from "react-icons/io";
 import { BsGraphUp } from "react-icons/bs";
 import { useAuth } from "../_lib/AuthContext";
 import type { Notification as MyNotification } from "../_lib/type";
-import { getNotifications, notificationCount, readNotification } from "../_lib/notification";
+import {
+  getNotifications,
+  notificationCount,
+  readNotification,
+} from "../_lib/notification";
 import { useNotificationCount } from "../_lib/useNotifications";
 
 function Sidebar() {
@@ -24,54 +23,51 @@ function Sidebar() {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { data: countData } = useNotificationCount();
-  const {logout} = useAuth();
+  const { logout } = useAuth();
   const count = countData?.data?.count || 0;
 
-  
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) {
+      console.log("No token in localStorage");
+      return;
+    }
 
- useEffect(() => {
-  const storedToken = localStorage.getItem("token");
-  if (!storedToken) {
-    console.log("No token in localStorage");
-    return;
-  }
+    setToken(storedToken); // set token
 
-  setToken(storedToken);   // set token
+    // const fetchNotifications = async () => {
+    //   setLoading(true);
+    //   try {
+    //     const res = await getNotifications();
+    //     console.log("Notifications response:", res);
 
-  // const fetchNotifications = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const res = await getNotifications();
-  //     console.log("Notifications response:", res);
+    //     const notifs: MyNotification[] = res?.data?.notifications || [];
+    //     setNotifications(notifs);
+    //   } catch (error) {
+    //     console.log("Notification error:", error);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
 
-  //     const notifs: MyNotification[] = res?.data?.notifications || [];
-  //     setNotifications(notifs);
-  //   } catch (error) {
-  //     console.log("Notification error:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+    //   fetchNotifications();
+    // }, []);
 
-//   fetchNotifications();
-// }, []);
+    // useEffect(() => {
+    //     const fetchNotifications = async () => {
+    //       setLoading(true);
+    //       try {
+    //         const res = await notificationCount();
+    //         setCount(res?.data?.count);
+    //       } catch (error: any) {
+    //         // toast.error(error?.message || "Failed to fetch notifications");
+    //       } finally {
+    //         setLoading(false);
+    //       }
+    //     };
 
-// useEffect(() => {
-//     const fetchNotifications = async () => {
-//       setLoading(true);
-//       try {
-//         const res = await notificationCount();
-//         setCount(res?.data?.count);
-//       } catch (error: any) {
-//         // toast.error(error?.message || "Failed to fetch notifications");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchNotifications();
+    //     fetchNotifications();
   }, []);
-
 
   // Hide sidebar on login page
   if (pathname.includes("login")) {
@@ -80,10 +76,14 @@ function Sidebar() {
 
   const links = [
     // { href: "/application-review", label: "Application Review", icon: <FiUserCheck /> },
-    // { href: "/product-review-queue", label: "Product Review Queue", icon: <MdOutlineRateReview /> },
-    { href: "/vendor-management", label: "Vendor Management", icon: <FiUsers /> },
+    // { href: "/payouts", label: "Payouts", icon: <FaMoneyBills /> },
+    {
+      href: "/vendor-management",
+      label: "Vendor Management",
+      icon: <FiUsers />,
+    },
     { href: "/", label: "Analytics", icon: <BsGraphUp /> },
-    {href: "/payouts", label: "Payouts", icon: <FaMoneyBill />},
+    { href: "/payouts", label: "Payouts", icon: <FaMoneyBill /> },
     // {href: "/notifications", label: "Notifications", icon: <FaBell />},
     { href: "/settings", label: "Settings", icon: <FiSettings /> },
   ];
@@ -95,11 +95,9 @@ function Sidebar() {
     >
       <nav className="flex flex-col gap-5  text-[15px]">
         {links.map(({ href, label, icon }) => {
-          const isActive =
-            pathname === href || pathname.startsWith(`${href}/`);
+          const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
           return (
-           
             <Link
               key={href}
               href={href}
@@ -112,29 +110,24 @@ function Sidebar() {
             >
               {icon} {label}
             </Link>
-            
-          
           );
         })}
 
         <Link
-  href="/notifications"
-  className={`flex items-center gap-3 font-semibold p-3 rounded-md transition-all duration-200 
+          href="/notifications"
+          className={`flex items-center gap-3 font-semibold p-3 rounded-md transition-all duration-200 
     ${pathname === "/notifications" ? "bg-gray-100 text-black" : "hover:bg-gray-50 text-gray-700"}
   `}
->
-  <div className="relative flex items-center gap-2">
-    <FaBell />
-    <span>Notifications</span>
+        >
+          <div className="relative flex items-center gap-2">
+            <FaBell />
+            <span>Notifications</span>
 
-    
-      <span className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-        {count || 0}
-      </span>
-   
-  </div>
-</Link>
-
+            <span className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              {count || 0}
+            </span>
+          </div>
+        </Link>
 
         {/* Divider */}
         <hr className="my-3 border-gray-200" />
