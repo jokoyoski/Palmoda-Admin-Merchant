@@ -124,7 +124,6 @@ function PayoutsPage() {
               </tr>
             </thead>
             <tbody>
-<<<<<<< HEAD
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
               ) : paginatedTransactions.length === 0 ? (
@@ -191,60 +190,6 @@ function PayoutsPage() {
                   </tr>
                 ))
               )}
-=======
-              {loading
-                ? Array.from({ length: 6 }).map((_, i) => (
-                    <SkeletonRow key={i} />
-                  ))
-                : paginatedTransactions.map((transaction) => (
-                    <tr
-                      key={transaction._id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition"
-                    >
-                      <td className="py-3 px-4 flex items-center gap-2">
-                        {transaction?.vendor?.brand?.brand_banner ? (
-                          <img
-                            className="w-10 h-10 rounded object-cover"
-                            src={transaction.vendor.brand.brand_banner}
-                            alt="Brand Banner"
-                          />
-                        ) : (
-                          <CiUser size={25} />
-                        )}
-                        <div className="text-gray-600">
-                          <p className="text-sm font-medium">
-                            {transaction?.vendor.business_name}
-                          </p>
-                          <p className="text-xs">{transaction?.vendor.email}</p>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {transaction?.transaction_reference}
-                      </td>
-                      <td className="py-3 px-4">₦{transaction?.amount}</td>
-                      <td className="py-3 px-4">
-                        {transaction.created_at.split(" ")[0]}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(
-                            transaction.status
-                          )}`}
-                        >
-                          {transaction.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2">
-                        <Link
-                          href={`/payouts/${transaction?._id}`}
-                          className="bg-gray-700 hover:bg-gray-800 transition text-white px-4 py-2 rounded text-xs"
-                        >
-                          Review
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
->>>>>>> e9ac5b3a43eb7b2a872c6116034989750e1b4c2f
             </tbody>
           </table>
 
@@ -258,13 +203,8 @@ function PayoutsPage() {
               >
                 Prev
               </button>
-<<<<<<< HEAD
-              <span className="px-2 py-1 text-gray-600">
-                Page {currentPage} of {totalPages}
-=======
               <span className="px-2 py-1">
                 {currentPage} / {totalPages}
->>>>>>> e9ac5b3a43eb7b2a872c6116034989750e1b4c2f
               </span>
               <button
                 onClick={() =>
