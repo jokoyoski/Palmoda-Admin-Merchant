@@ -1,22 +1,14 @@
 "use client";
 import React, { useEffect, useState } from 'react'
 import { CiUser } from 'react-icons/ci'
-import img1 from "../../public/assets/acf62735-b103-4181-8e53-efa013a84b29.png"
-import img2 from "../../public/assets/7c6f6e3f-9ad5-47d3-97f3-0e61978d84da.png"
-import img3 from "../../public/assets/83ef0ffa-4ff6-4238-ae16-a52c665cb78a.png"
-import img4 from "../../public/assets/c02bb544-697e-46df-8aea-0a70631e59b5.png"
-import img5 from "../../public/assets/d4d4d3b5-8157-4cd7-bab4-d06e330430e1.png"
 import { CategoryQueryParams } from "@/types";
 import { useCategories } from "../_lib/categories";
 import { useFetchGenders } from "../_lib/gender";
 import { useFetchSizes } from "../_lib/sizes";
 import { useFetchColors, addColor } from "../_lib/colors";
-import Image from 'next/image'
 import { Product, Vendor } from '../_lib/type'
 import { approveProduct, rejectProduct, requestCorrection } from '../_lib/products';
 import { toast } from 'react-toastify';
-import { FaL } from 'react-icons/fa6';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FaArrowLeft } from 'react-icons/fa';
 
@@ -26,81 +18,22 @@ interface ProductProps {
   products: Product[];
 }
 
-function Products({ vendor, id, products: initialProducts }: ProductProps) {
-  const [colors, setColors] = useState<string[]>([]);
-  const [sizes, setSizes] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string>("");
-  const [mainImage, setMainImage] = useState<string | null>(null);
-  const [gender, setGender] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
+// ✅ Separate component for each product item
+interface ProductItemProps {
+  item: Product;
+  vendor: Vendor | null;
+  categoriesArray: any[];
+  colorsArray: any[];
+  sizesArray: any[];
+  updateProductStatus: (productId: string, newStatus: string) => void;
+}
+
+function ProductItem({ item, vendor, categoriesArray, colorsArray, sizesArray, updateProductStatus }: ProductItemProps) {
+  const [currentMainImage, setCurrentMainImage] = useState(item.images[0]); // ✅ Now safe to use useState
+  const [reviewText, setReviewText] = useState("");
   const [rejecting, setRejecting] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-  const [reviewText, setReviewText] = useState(""); // ✅ Added review text state
   const [approving, setApproving] = useState(false);
-  const [productQueue, setProductQueue] = useState<Product[]>(initialProducts);
   const [requesting, setRequesting] = useState(false);
-
-  const router = useRouter();
-
-  useEffect(() => {
-    setProductQueue(initialProducts);
-  }, [initialProducts]);
-
-  useEffect(() => {
-  if (initialProducts.length > 0) {
-    setMainImage(initialProducts[0].images[0]);
-  }
-}, [initialProducts]);
-
-
-  const [queryParams, setQueryParams] = useState<CategoryQueryParams>({
-    page_number: 1,
-    page_size: 10,
-    filter: {
-      search_term: null,
-      countries: {
-        $in: [],
-      },
-    },
-    sort_field: "name",
-    sort_direction: 1,
-  });
-
-  const {
-    data: categoriesArray = [],
-    isLoading,
-    isError,
-    error,
-  } = useCategories(queryParams);
-
-  const {
-    data: gendersArray = [],
-    isLoading: genderLoading,
-    isError: isGenderError,
-    error: genderError,
-  } = useFetchGenders();
-
-  const {
-    data: sizesArray = [],
-    isLoading: sizesLoading,
-    isError: sizesIsError,
-    error: sizesError,
-  } = useFetchSizes();
-
-  const {
-    data: colorsArray = [],
-    isLoading: colorsLoader,
-    isError: colorIsError,
-    error: colorError,
-  } = useFetchColors();
-
-  const pageSize = 3;
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const currentProducts = productQueue.slice(startIndex, endIndex);
-
-  const totalPages = Math.ceil(productQueue.length / pageSize);
 
   const mapIdsToNames = (ids: string[], referenceArray: { _id: string; name: string }[]) => {
     return ids
@@ -109,16 +42,7 @@ function Products({ vendor, id, products: initialProducts }: ProductProps) {
       .join(", ") || "N/A";
   };
 
-  // For fabrics/materials
   const formatFabrics = (fabrics: string[]) => fabrics?.join(", ") || "N/A";
-
-  const updateProductStatus = (productId: string, newStatus: string) => {
-    setProductQueue(prevProducts =>
-      prevProducts.map(p =>
-        p._id === productId ? { ...p, status: newStatus } : p
-      )
-    );
-  };
 
   const handeleApproval = async (vendorId: string, prodId: string) => {
     try {
@@ -126,9 +50,7 @@ function Products({ vendor, id, products: initialProducts }: ProductProps) {
       const res = await approveProduct(vendorId, prodId);
       if (res.success) {
         toast.success(res.message || "Product approved successfully!");
-        // --- IMMEDIATE STATE UPDATE ---
         updateProductStatus(prodId, "Approved");
-        // ------------------------------
       } else {
         toast.error(res.message || "Failed to approve product.");
       }
@@ -148,11 +70,8 @@ function Products({ vendor, id, products: initialProducts }: ProductProps) {
       const res = await rejectProduct(vendorId, prodId, reason);
       if (res.success) {
         toast.success(res.message || "Product rejected successfully!");
-        // --- IMMEDIATE STATE UPDATE ---
         updateProductStatus(prodId, "Rejected");
-        // Clear reason after successful rejection
-        setRejectReason("");
-        // ------------------------------
+        setReviewText("");
       } else {
         toast.error(res.message || "Failed to reject product.");
       }
@@ -172,11 +91,7 @@ function Products({ vendor, id, products: initialProducts }: ProductProps) {
       const res = await requestCorrection(vendor_id, prodId, review);
       if (res.success) {
         toast.success(res.message || "Request Correction Successful");
-        // Clear review text after successful request
         setReviewText("");
-        // --- IMMEDIATE STATE UPDATE ---
-        //            updateProductStatus(prodId, "Approved");
-        // ------------------------------
       } else {
         toast.error(res.message || "Request Correction Failed");
       }
@@ -186,6 +101,203 @@ function Products({ vendor, id, products: initialProducts }: ProductProps) {
       setRequesting(false)
     }
   }
+
+  return (
+    <div className="p-3 border border-gray-200 mb-4">
+      {/* Product Header */}
+      <div className="flex justify-between items-center mb-5">
+        <div className="flex items-center gap-2">
+          {vendor?.brand?.brand_banner ? (
+            <img
+              src={vendor.brand.brand_banner}
+              alt=""
+              className="w-10 h-10 rounded-full border border-gray-300 object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center bg-gray-100">
+              <CiUser className="text-black text-[22px]" />
+            </div>
+          )}
+          <div>
+            <h1 className="text-sm text-black font-semibold">{vendor?.brand?.brand_name}</h1>
+            <p className="text-gray-500 text-xs">
+              Submitted: {new Date(item?.created_at).toISOString().split("T")[0]} • ID: {item?.sku}
+            </p>
+          </div>
+        </div>
+        {item?.status === "Approved" && (
+          <h3 className='text-green-500 font-semibold text-xs'>Approved</h3>
+        )}
+
+        {item?.status === "Rejected" && (
+          <h3 className='text-red-500 font-semibold text-xs'>Rejected</h3>
+        )}
+
+        {item?.status !== "Approved" && item?.status !== "Rejected" && (
+          <h3 className="text-yellow-600 font-semibold text-xs">Pending Approval</h3>
+        )}
+      </div>
+
+      {/* Product Details */}
+      <div className="flex gap-7">
+        {/* Images */}
+        <div className="flex flex-col gap-6 w-[250px]">
+          <img
+            src={currentMainImage}
+            alt="Main Product"
+            className="w-full h-[300px] object-cover rounded-md"
+          />
+
+          <div className="flex gap-1">
+            {item.images.slice(1).map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                alt={`Thumbnail ${idx + 1}`}
+                className="w-1/4 h-[50px] object-cover rounded-sm cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => setCurrentMainImage(img)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="w-full">
+          <h1 className="text-sm font-semibold text-black">{item.name}</h1>
+          <div className="flex items-center gap-4 my-3.5">
+            <h3 className="text-xl font-semibold text-black">₦{item.discounted_price.toLocaleString()}</h3>
+            <h4 className="text-gray-500 text-sm line-through">₦{item.cost_price.toLocaleString()}</h4>
+          </div>
+
+          {/* Product info */}
+          <div className="flex gap-12">
+            <div className="flex flex-col gap-3">
+              <h1 className="text-sm font-semibold text-black">Product Details</h1>
+              <p className="text-xs text-black flex gap-2">
+                <span className="font-semibold">Category:</span> {mapIdsToNames(item.categories, categoriesArray)}
+              </p>
+
+              <p className="text-xs text-black flex gap-2"><span className="font-semibold">Color:</span>
+                {mapIdsToNames(item.colors, colorsArray)}
+              </p>
+              <p className="text-xs text-black flex gap-2"><span className="font-semibold">
+                Sizes:</span> {mapIdsToNames(item.sizes, sizesArray)}</p>
+              <p className="text-xs text-black flex gap-2"><span className="font-semibold">
+                Material:</span> {formatFabrics(item.fabrics)}</p>
+              <p className="text-xs text-black flex gap-2"><span className="font-semibold">Origin:</span>
+                {vendor?.kyc_compliance?.city}
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <h1 className="text-sm font-semibold text-black">Inventory Information</h1>
+              <p className="text-xs text-black flex gap-2"><span className="font-semibold">Stock:</span> {item.quantity} units</p>
+              <p className="text-xs text-black flex gap-2"><span className="font-semibold">Shipping:</span> 2–3 business days</p>
+              <p className="text-xs text-black flex gap-2"><span className="font-semibold">SKU:</span>
+                {item?.sku}</p>
+              <p className="text-xs text-black flex gap-2"><span className="font-semibold">Margin:</span> 42%</p>
+              <p className="text-xs text-black flex gap-2"><span className="font-semibold">Return Policy:</span> 30 days</p>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="mt-6">
+            <h1 className="text-sm font-semibold text-black">Product Description</h1>
+            <p className="text-xs text-gray-600 leading-relaxed mt-2">{item.description}</p>
+          </div>
+
+          <hr className="text-gray-200 my-6" />
+          {/* Review Notes */}
+          {item?.status === "Approved" ? "" : <div className="mt-8">
+            <h1 className="text-sm font-semibold text-black mb-2">Review Notes</h1>
+            <textarea
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              placeholder="Add notes or feedback about this product submission..."
+              className="w-full h-[120px] border border-gray-300 rounded-md text-xs p-3 focus:outline-none focus:ring-1 focus:ring-black resize-none"
+            ></textarea>
+          </div>}
+          {item?.status === "Approved" ? "" :
+
+            <div className='flex gap-3 mt-4'>
+              <button
+                onClick={() => handleReject(item?.vendor_id, item?._id, reviewText)}
+                className='px-5 py-2 text-xs font-semibold uppercase bg-red-600 border
+                   border-red-400 text-white'>
+                {rejecting ? "Rejecting" : "Reject"}
+              </button>
+              <button
+                onClick={() => handleRequestCorrection(item?.vendor_id, item?._id, reviewText)}
+                className='px-5 py-2 text-xs font-semibold uppercase text-gray-700 border
+                     border-gray-300 hover:bg-gray-100'>
+
+                {requesting ? "Requesting" : "Request Correction"}
+
+              </button>
+              <button
+                onClick={() => handeleApproval(item?.vendor_id, item?._id)}
+                disabled={item?.status === "Approved"}
+                className={`px-5 py-2 text-xs font-semibold uppercase text-white bg-black hover:bg-gray-800
+               ${item?.status === "Approved" ? "cursor-not-allowed" : ""}
+               `}>
+                {approving ? "Approving" : "Approve"}
+
+              </button>
+            </div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ✅ Main Products component
+function Products({ vendor, id, products: initialProducts }: ProductProps) {
+  const [productQueue, setProductQueue] = useState<Product[]>(initialProducts);
+  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
+
+  useEffect(() => {
+    setProductQueue(initialProducts);
+  }, [initialProducts]);
+
+  const [queryParams, setQueryParams] = useState<CategoryQueryParams>({
+    page_number: 1,
+    page_size: 10,
+    filter: {
+      search_term: null,
+      countries: {
+        $in: [],
+      },
+    },
+    sort_field: "name",
+    sort_direction: 1,
+  });
+
+  const {
+    data: categoriesArray = [],
+  } = useCategories(queryParams);
+
+  const {
+    data: sizesArray = [],
+  } = useFetchSizes();
+
+  const {
+    data: colorsArray = [],
+  } = useFetchColors();
+
+  const pageSize = 3;
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const currentProducts = productQueue.slice(startIndex, endIndex);
+
+  const totalPages = Math.ceil(productQueue.length / pageSize);
+
+  const updateProductStatus = (productId: string, newStatus: string) => {
+    setProductQueue(prevProducts =>
+      prevProducts.map(p =>
+        p._id === productId ? { ...p, status: newStatus } : p
+      )
+    );
+  };
 
   return (
     <section className="bg-white px-4 mt-3.5 py-3">
@@ -198,159 +310,19 @@ function Products({ vendor, id, products: initialProducts }: ProductProps) {
       </button>
 
       {currentProducts.map((item, index) => (
-        <div key={index} className="p-3 border border-gray-200 mb-4">
-          {/* Product Header */}
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex items-center gap-2">
-              {vendor?.brand?.brand_banner ? (
-                <img
-                  src={vendor.brand.brand_banner}
-                  alt=""
-                  className="w-10 h-10 rounded-full border border-gray-300 object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center bg-gray-100">
-                  <CiUser className="text-black text-[22px]" />
-                </div>
-              )}
-              <div>
-                <h1 className="text-sm text-black font-semibold">{vendor?.brand?.brand_name}</h1>
-                <p className="text-gray-500 text-xs">
-                  Submitted: {new Date(item?.created_at).toISOString().split("T")[0]} • ID: {item?.sku}
-                </p>
-              </div>
-            </div>
-            {item?.status === "Approved" && (
-              <h3 className='text-green-500 font-semibold text-xs'>Approved</h3>
-            )}
-
-            {item?.status === "Rejected" && (
-              <h3 className='text-red-500 font-semibold text-xs'>Rejected</h3>
-            )}
-
-            {item?.status !== "Approved" && item?.status !== "Rejected" && (
-              <h3 className="text-yellow-600 font-semibold text-xs">Pending Approval</h3>
-            )}
-          </div>
-
-          {/* Product Details */}
-          <div className="flex gap-7">
-            {/* Images */}
-            <div className="flex flex-col gap-6 w-[250px]">
-             <img
-  src={mainImage || item.images[0]}
-  alt="Main Product"
-  className="w-full h-[300px] object-cover rounded-md"
-/>
-
-             <div className="flex gap-1">
-  {item.images.slice(1).map((img, idx) => (
-    <img
-      key={idx}
-      src={img}
-      alt={`Thumbnail ${idx + 1}`}
-      className="w-1/4 h-[50px] object-cover rounded-sm cursor-pointer hover:scale-105 transition-transform"
-      onClick={() => setMainImage(img)} // ✅ Set main image on click
-    />
-  ))}
-</div>
-
-            </div>
-
-            {/* Description */}
-            <div className="w-full">
-              <h1 className="text-sm font-semibold text-black">{item.name}</h1>
-              <div className="flex items-center gap-4 my-3.5">
-                <h3 className="text-xl font-semibold text-black">₦{item.discounted_price.toLocaleString()}</h3>
-                <h4 className="text-gray-500 text-sm line-through">₦{item.cost_price.toLocaleString()}</h4>
-              </div>
-
-              {/* Product info */}
-              <div className="flex gap-12">
-                <div className="flex flex-col gap-3">
-                  <h1 className="text-sm font-semibold text-black">Product Details</h1>
-                  <p className="text-xs text-black flex gap-2">
-                    <span className="font-semibold">Category:</span> {mapIdsToNames(item.categories, categoriesArray)}
-                  </p>
-
-                  <p className="text-xs text-black flex gap-2"><span className="font-semibold">Color:</span>
-                    {mapIdsToNames(item.colors, colorsArray)}
-                  </p>
-                  <p className="text-xs text-black flex gap-2"><span className="font-semibold">
-                    Sizes:</span> {mapIdsToNames(item.sizes, sizesArray)}</p>
-                  <p className="text-xs text-black flex gap-2"><span className="font-semibold">
-                    Material:</span> {formatFabrics(item.fabrics)}</p>
-                  <p className="text-xs text-black flex gap-2"><span className="font-semibold">Origin:</span>
-                    {vendor?.kyc_compliance?.city}
-                  </p>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <h1 className="text-sm font-semibold text-black">Inventory Information</h1>
-                  <p className="text-xs text-black flex gap-2"><span className="font-semibold">Stock:</span> {item.quantity} units</p>
-                  <p className="text-xs text-black flex gap-2"><span className="font-semibold">Shipping:</span> 2–3 business days</p>
-                  <p className="text-xs text-black flex gap-2"><span className="font-semibold">SKU:</span>
-                    {item?.sku}</p>
-                  <p className="text-xs text-black flex gap-2"><span className="font-semibold">Margin:</span> 42%</p>
-                  <p className="text-xs text-black flex gap-2"><span className="font-semibold">Return Policy:</span> 30 days</p>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="mt-6">
-                <h1 className="text-sm font-semibold text-black">Product Description</h1>
-                <p className="text-xs text-gray-600 leading-relaxed mt-2">{item.description}</p>
-              </div>
-
-              <hr className="text-gray-200 my-6" />
-              {/* Review Notes */}
-              {item?.status === "Approved" ? "" : <div className="mt-8">
-                <h1 className="text-sm font-semibold text-black mb-2">Review Notes</h1>
-                <textarea
-                  value={reviewText} // ✅ Connected to state
-                  onChange={(e) => setReviewText(e.target.value)} // ✅ Updates state
-                  placeholder="Add notes or feedback about this product submission..."
-                  className="w-full h-[120px] border border-gray-300 rounded-md text-xs p-3 focus:outline-none focus:ring-1 focus:ring-black resize-none"
-                ></textarea>
-              </div>}
-              {item?.status === "Approved" ? "" :
-
-                <div className='flex gap-3 mt-4'>
-                  {/* <button className='px-5 py-2 text-xs font-semibold uppercase text-gray-700 border
-                  border-gray-300 hover:bg-gray-100'> Flag for Review </button>  */}
-                  <button
-                    onClick={() => handleReject(item?.vendor_id, item?._id, reviewText)} // ✅ Uses reviewText
-                    className='px-5 py-2 text-xs font-semibold uppercase bg-red-600 border
-                   border-red-400 text-white'>
-                    {rejecting ? "Rejecting" : "Reject"}
-                  </button>
-                  <button
-                    onClick={() => handleRequestCorrection(item?.vendor_id, item?._id, reviewText)} // ✅ Uses reviewText
-                    className='px-5 py-2 text-xs font-semibold uppercase text-gray-700 border
-                     border-gray-300 hover:bg-gray-100'>
-                      
-                       {requesting ? "Requesting" : "Request Correction"}
-                       
-                        </button>
-                  <button
-                    onClick={() => handeleApproval(item?.vendor_id, item?._id)}
-                    disabled={item?.status === "Approved"}
-                    className={`px-5 py-2 text-xs font-semibold uppercase text-white bg-black hover:bg-gray-800
-               ${item?.status === "Approved" ? "cursor-not-allowed" : ""}
-               `}>
-                    {approving ? "Approving" : "Approve"}
-
-                  </button>
-                </div>}
-            </div>
-          </div>
-        </div>
+        <ProductItem
+          key={item._id || index}
+          item={item}
+          vendor={vendor}
+          categoriesArray={categoriesArray}
+          colorsArray={colorsArray}
+          sizesArray={sizesArray}
+          updateProductStatus={updateProductStatus}
+        />
       ))}
 
       {/* Pagination Buttons */}
-      {/* Pagination Buttons */}
       <div className="flex justify-end gap-3 mt-6">
-
-        {/* Show Prev only if NOT on first page */}
         {currentPage > 1 && (
           <button
             className="px-5 py-2 text-xs font-semibold uppercase border border-gray-300 text-gray-700 hover:bg-gray-100"
@@ -360,7 +332,6 @@ function Products({ vendor, id, products: initialProducts }: ProductProps) {
           </button>
         )}
 
-        {/* Show Next only if NOT on last page */}
         {currentPage < totalPages && (
           <button
             className="px-5 py-2 text-xs font-semibold uppercase bg-black text-white hover:bg-gray-800"
@@ -369,9 +340,7 @@ function Products({ vendor, id, products: initialProducts }: ProductProps) {
             Next
           </button>
         )}
-
       </div>
-
     </section>
   )
 }

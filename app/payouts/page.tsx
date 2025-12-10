@@ -2,37 +2,21 @@
 import React, { useEffect, useState } from "react";
 import ProtectedRoute from "../_components/ProtectedRoute";
 import { TransactionType } from "../_lib/type";
-import { getAllTransactions } from "../_lib/payouts";
 import { CiUser } from "react-icons/ci";
+import { usePayouts } from "../_lib/usePayouts";
 import Link from "next/link";
 
 const PAGE_SIZE = 5; // Number of rows per page
 
-function page() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [transactions, setTransactions] = useState<TransactionType[]>([]);
+function PayoutsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all"); // all, successful, pending, failed
+  
+  // Use React Query hook instead of manual fetch
+  const { data, isLoading, error } = usePayouts();
 
-  useEffect(() => {
-    const fetchTransacs = async () => {
-      try {
-        setLoading(true);
-        const res = await getAllTransactions();
-        if (res?.data) {
-          setTransactions(res.data.transactions);
-        } else {
-          setError("No transaction found");
-        }
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTransacs();
-  }, []);
+  // Extract transactions from the query result
+  const transactions = data?.data?.transactions || [];
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -82,7 +66,7 @@ function page() {
     statusFilter === "all"
       ? transactions
       : transactions.filter(
-          (t) => t.status.toLowerCase() === statusFilter.toLowerCase()
+          (t: TransactionType) => t.status.toLowerCase() === statusFilter.toLowerCase()
         );
 
   // Pagination logic
@@ -91,6 +75,11 @@ function page() {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter]);
 
   return (
     <ProtectedRoute>
@@ -106,11 +95,8 @@ function page() {
           {/* Filter */}
           <select
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1); // reset to page 1
-            }}
-            className="border border-gray-300 rounded px-2 py-1 text-sm"
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
           >
             <option value="all">All</option>
             <option value="successful">Successful</option>
@@ -120,6 +106,12 @@ function page() {
         </div>
 
         <div className="w-full px-4 py-3 mt-6 bg-white rounded-lg border border-gray-200 overflow-x-auto">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-4">
+              Error loading transactions: {error.message}
+            </div>
+          )}
+
           <table className="min-w-full text-sm">
             <thead className="border-b border-gray-200 text-gray-500 font-semibold sticky top-0 bg-white">
               <tr>
@@ -132,68 +124,82 @@ function page() {
               </tr>
             </thead>
             <tbody>
-              {loading
-                ? Array.from({ length: 6 }).map((_, i) => (
-                    <SkeletonRow key={i} />
-                  ))
-                : paginatedTransactions.map((transaction) => (
-                    <tr
-                      key={transaction._id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition"
-                    >
-                      <td className="py-3 px-4 flex items-center gap-2">
-                        {transaction?.vendor?.brand?.brand_banner ? (
-                          <img
-                            className="w-10 h-10 rounded object-cover"
-                            src={transaction.vendor.brand.brand_banner}
-                            alt="Brand Banner"
-                          />
-                        ) : (
-                          <CiUser size={25} />
-                        )}
-                        <div className="text-gray-600">
-                          <p className="text-sm font-medium">
-                            {transaction?.vendor.business_name}
-                          </p>
-                          <p className="text-xs">{transaction?.vendor.email}</p>
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
+              ) : paginatedTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-gray-500">
+                    {statusFilter === "all" 
+                      ? "No transactions found" 
+                      : `No ${statusFilter} transactions found`}
+                  </td>
+                </tr>
+              ) : (
+                paginatedTransactions.map((transaction: TransactionType) => (
+                  <tr
+                    key={transaction._id}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition"
+                  >
+                    <td className="py-3 px-4 flex items-center gap-2">
+                      {transaction?.vendor?.brand?.brand_banner ? (
+                        <img
+                          className="w-10 h-10 rounded object-cover"
+                          src={transaction.vendor.brand.brand_banner}
+                          alt="Brand Banner"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <CiUser size={25} className="text-gray-500" />
                         </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {transaction?.transaction_reference}
-                      </td>
-                      <td className="py-3 px-4">₦{transaction?.amount}</td>
-                      <td className="py-3 px-4">
-                        {transaction.created_at.split(" ")[0]}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(
-                            transaction.status
-                          )}`}
-                        >
-                          {transaction.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2">
-                        <Link
-                          href={`/payouts/${transaction?._id}`}
-                          className="bg-gray-700 hover:bg-gray-800 transition text-white px-4 py-2 rounded text-xs"
-                        >
-                          Review
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
+                      )}
+                      <div className="text-gray-600">
+                        <p className="text-sm font-medium">
+                          {transaction?.vendor?.business_name || "N/A"}
+                        </p>
+                        <p className="text-xs">{transaction?.vendor?.email || "N/A"}</p>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-gray-700">
+                      {transaction?.transaction_reference || "N/A"}
+                    </td>
+                    <td className="py-3 px-4 font-semibold text-gray-800">
+                      ₦{transaction?.amount?.toLocaleString() || "0"}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600">
+                      {transaction?.created_at 
+                        ? new Date(transaction.created_at).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(
+                          transaction?.status || "unknown"
+                        )}`}
+                      >
+                        {transaction?.status || "Unknown"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <Link
+                        href={`/payouts/${transaction?._id}`}
+                        className="bg-gray-700 hover:bg-gray-800 transition text-white px-4 py-2 rounded text-xs inline-block"
+                      >
+                        Review
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
 
           {/* Pagination */}
-          {!loading && totalPages > 1 && (
-            <div className="flex justify-end gap-2 mt-4 text-sm">
+          {!isLoading && totalPages > 1 && (
+            <div className="flex justify-end items-center gap-2 mt-4 text-sm">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 Prev
               </button>
@@ -205,10 +211,18 @@ function page() {
                   setCurrentPage((p) => Math.min(p + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 Next
               </button>
+            </div>
+          )}
+
+          {/* Summary */}
+          {!isLoading && transactions.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
+              Showing {paginatedTransactions.length} of {filteredTransactions.length} transactions
+              {statusFilter !== "all" && ` (${statusFilter})`}
             </div>
           )}
         </div>
@@ -217,4 +231,4 @@ function page() {
   );
 }
 
-export default page;
+export default PayoutsPage;

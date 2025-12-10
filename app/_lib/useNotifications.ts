@@ -45,7 +45,8 @@ export const useNotificationCount = () => {
         queryKey: ["notificationCount"] as QueryKey,
         queryFn: notificationCount,
         staleTime: 60 * 1000,       // cache is fresh for 1 min
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+     refetchInterval: 1000,
     });
 };
 

@@ -42,12 +42,64 @@ export const verifyBusiness = async (id) => {
     }
 }
 
+export const revokeBusiness = async (id) => {
+     try {
+       const token = localStorage.getItem("token");
+    if (!token) return console.log("No token found");
+    const res = await axios.put(`${backendUrl}/vendor/revoke-business-registration/${id}`, {}, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    return res.data;
+    } catch (error) {
+         if (error.response?.data?.message) {
+      return {
+        success: false,
+        message: error.response.data.message,
+      };
+    }
+
+    // fallback message
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    } 
+    }
+}
+
 
 export const verifyVendorIdentity = async (id) => {
     try {
        const token = localStorage.getItem("token");
     if (!token) return console.log("No token found");
     const res = await axios.put(`${backendUrl}/vendor/verify-vendor-identity/${id}`, {}, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    return res.data;
+    } catch (error) {
+         if (error.response?.data?.message) {
+      return {
+        success: false,
+        message: error.response.data.message,
+      };
+    }
+
+    // fallback message
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    } 
+    }
+}
+
+export const revokeVendorIdentity = async (id) => {
+    try {
+       const token = localStorage.getItem("token");
+    if (!token) return console.log("No token found");
+    const res = await axios.put(`${backendUrl}/vendor/revoke-vendor-identity/${id}`, {}, {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -95,6 +147,31 @@ export const verifyBankDetails = async (id) => {
     }
 }
 
+export const revokeBankDetails = async (id) => {
+   try {
+       const token = localStorage.getItem("token");
+    if (!token) return console.log("No token found");
+    const res = await axios.put(`${backendUrl}/vendor/revoke-bank-registration/${id}`, {}, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    return res.data;
+    } catch (error) {
+         if (error.response?.data?.message) {
+      return {
+        success: false,
+        message: error.response.data.message,
+      };
+    }
+
+    // fallback message
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    } 
+    }
+}
 
 export const suspendVendor = async (vendor_id) => {
    try {

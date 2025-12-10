@@ -30,7 +30,7 @@ function Page() {
        console.log(res.data);
         setVendor(res.data);
       } catch (error: any) {
-        setError("Failed to load vendor details");
+        setError(error?.message);
         toast.error(error.message);
       } finally {
         setLoading(false);
