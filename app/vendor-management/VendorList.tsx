@@ -22,6 +22,7 @@ interface VendorListProps {
     search?: string;
     businessType?: string;
     kyc?: string;
+     resetPage?: boolean;
   }) => void;
 
   currentPage: number;
@@ -323,6 +324,7 @@ export default function VendorList({
                   search: "",
                   businessType: "Any",
                   kyc: "Any",
+                   resetPage: false,
                 });
               }}
             >
@@ -398,7 +400,13 @@ export default function VendorList({
                       key={vendor._id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition"
                     >
-                      <td className="py-3 px-4">{vendor.business_name}</td>
+                      <td className="py-3 px-4">
+                        <Link
+                            href={`/application-review/${vendor?._id}`}>
+                                   {vendor.business_name}
+                            </Link>
+                      
+                        </td>
                       <td className="py-3 px-4">
                         {vendor.is_business_verified &&
                         vendor.is_identity_verified &&

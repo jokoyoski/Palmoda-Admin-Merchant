@@ -588,12 +588,12 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
                   Approve Application
                 </button>
 
-                <button
+                {/* <button
                   className="w-full bg-inherit py-2 px-4 text-xs border
                           border-red-500 text-red-500 disabled:cursor-not-allowed hover:bg-red-50 transition duration-150"
                 >
                   Reject Application
-                </button>
+                </button> */}
 
                 <div className="mt-4 flex flex-col gap-3">
                   <div className="flex justify-between items-center">

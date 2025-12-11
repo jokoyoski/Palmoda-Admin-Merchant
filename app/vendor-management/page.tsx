@@ -36,6 +36,7 @@ export default function Page() {
     search?: string;
     businessType?: string;
     kyc?: string;
+    resetPage?: boolean;
   }) => {
     let dataToFilter = [...data?.vendors];
 
@@ -88,6 +89,9 @@ export default function Page() {
     }
 
     setFilteredVendors(dataToFilter);
+    if (overrides?.resetPage) {
+    setCurrentPage(1);
+  }
   };
 
   // Mutations
