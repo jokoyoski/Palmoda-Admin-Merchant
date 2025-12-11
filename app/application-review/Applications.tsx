@@ -380,7 +380,7 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
               <h1 className="text-black font-semibold text-sm">
                 Product Information
               </h1>
-              <div className="flex my-4 gap-8">
+              <div className="flex my-4 gap-8 mb-6">
                 {products.length > 0 ? (
                   products.slice(0, 3).map((item: Product, index: number) => (
                     <div className="" key={index}>
@@ -391,7 +391,7 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
                       />
                       <p className="text-gray-500 text-xs">{item.name}</p>
                       <p className="text-gray-500 text-xs">
-                        €{item.discounted_price}
+                        NGN{item.discounted_price}
                       </p>
                     </div>
                   ))
