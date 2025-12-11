@@ -108,16 +108,9 @@ function Page() {
 
                       {notif.details && (
                         <div className="border-t border-gray-200 pt-2 mt-2 space-y-1">
-                          <p>
-                            <strong>Amount:</strong> NGN{notif.details.amount}
-                          </p>
-                          <p>
-                            <strong>Status:</strong> {notif.details.status}
-                          </p>
-                          <p>
-                            <strong>Reference:</strong>{" "}
-                            {notif.details.transaction_reference}
-                          </p>
+                          {notif.details.amount && <p><strong>Amount:</strong> NGN{notif.details.amount}</p> }
+                          {notif.details.status &&  <p><strong>Status:</strong> {notif.details.status}</p> }
+                          {notif.details.transaction_reference &&  <p><strong>Reference:</strong> {notif.details.transaction_reference}</p>}
                           {notif.details.rejection_reason && (
                             <p>
                               <strong>Rejection Reason:</strong>{" "}
