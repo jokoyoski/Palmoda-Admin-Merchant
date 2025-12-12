@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getVendors} from './vendors';
+import { filterVendors, getVendors} from './vendors';
 import {suspendVendor, revokeSuspension} from "./admin"
 import { sendMessage } from '../_lib/message';
 import { toast } from 'react-toastify';
@@ -153,3 +153,18 @@ export function useSendMessage() {
     },
   });
 }
+
+export const useFilteredVendors = (
+  pageNumber: number,
+  search: string,
+  businessType: string,
+  kyc: string
+) => {
+  // The query key now includes all filter parameters and the page number
+  return useQuery({
+    queryKey: ['vendors', pageNumber, search, businessType, kyc],
+    queryFn: () => filterVendors(pageNumber, { search, businessType, kyc }),
+    placeholderData: (previousData) => previousData, // Keep previous data while loading new page/filters
+    staleTime: 1000 * 60, // Data considered fresh for 1 minute
+  });
+};

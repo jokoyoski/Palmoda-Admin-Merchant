@@ -8,6 +8,7 @@ import {
   useSuspendVendor,
   useRevokeSuspension,
 } from "../_lib/useVendors";
+import {filterVendors} from "../_lib/vendors"
 
 export default function Page() {
   // Filters + Pagination

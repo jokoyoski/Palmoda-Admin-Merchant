@@ -22,7 +22,7 @@ interface VendorListProps {
     search?: string;
     businessType?: string;
     kyc?: string;
-     resetPage?: boolean;
+    resetPage?: boolean;
   }) => void;
 
   currentPage: number;
@@ -59,8 +59,8 @@ export default function VendorList({
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [suspending, setSuspending] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "all" | "active" | "pending" | "rejected"
-  >("all");
+    "all" | "active" | "pending" | "rejected" | "suspended" | "deleted"
+>("all");
   const [suspendingVendors, setSuspendingVendors] = useState<{
     [key: string]: boolean;
   }>({});
@@ -142,18 +142,38 @@ export default function VendorList({
       case "all":
         return vendors;
       case "active":
-        return vendors.filter((v) => v.is_active);
-      case "pending":
-        // Assuming pending means KYC not fully verified
+        // Active: is_active is true, NOT suspended, NOT deleted, and KYC is verified
         return vendors.filter(
           (v) =>
-            !v.is_business_verified ||
-            !v.is_identity_verified ||
-            !v.is_bank_information_verified
+            v.is_active &&
+            !v.is_suspended &&
+            !v.is_deleted &&
+            v.is_business_verified &&
+            v.is_identity_verified &&
+            v.is_bank_information_verified
+        );
+      case "pending":
+        // Pending: NOT suspended, NOT deleted, but KYC is *not* fully verified
+        return vendors.filter(
+          (v) =>
+            (!v.is_business_verified ||
+              !v.is_identity_verified ||
+              !v.is_bank_information_verified) &&
+            !v.is_suspended &&
+            !v.is_deleted
         );
       case "rejected":
-        // Assuming rejected means inactive
-        return vendors.filter((v) => !v.is_active);
+        // Rejected: is_active is explicitly false, AND NOT suspended, AND NOT deleted
+        // This targets initial application rejection/inactive status.
+        return vendors.filter(
+          (v) => !v.is_active && !v.is_suspended && !v.is_deleted
+        );
+      case "suspended":
+        // Suspended: is_suspended is true (regardless of other flags for primary status)
+        return vendors.filter((v) => v.is_suspended);
+      case "deleted":
+        // Deleted: is_deleted is true (regardless of other flags for primary status)
+        return vendors.filter((v) => v.is_deleted);
       default:
         return vendors;
     }
@@ -197,7 +217,7 @@ export default function VendorList({
         >
           Pending Applications
         </button>
-        <button
+        {/* <button
           onClick={() => setActiveTab("rejected")}
           className={`cursor-pointer transition-colors ${
             activeTab === "rejected"
@@ -206,12 +226,42 @@ export default function VendorList({
           }`}
         >
           Rejected Applications
+        </button> */}
+        <button
+          onClick={() => setActiveTab("rejected")}
+          className={`cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === "rejected"
+              ? "text-black border-b-2 border-black pb-1"
+              : "text-gray-500 hover:text-black"
+          }`}
+        >
+          Rejected Applications
+        </button>
+        <button
+          onClick={() => setActiveTab("suspended")}
+          className={`cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === "suspended"
+              ? "text-black border-b-2 border-black pb-1"
+              : "text-gray-500 hover:text-black"
+          }`}
+        >
+          Suspended Vendors
+        </button>
+        <button
+          onClick={() => setActiveTab("deleted")}
+          className={`cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === "deleted"
+              ? "text-black border-b-2 border-black pb-1"
+              : "text-gray-500 hover:text-black"
+          }`}
+        >
+          Deleted Vendors
         </button>
       </div>
 
       <div className="flex gap-6">
         {/* FILTERS */}
-        <div className="w-[22%] mb-4 flex flex-col gap-4 border border-gray-200 p-4 rounded-lg bg-gray-50">
+        <div className="w-[22%] h-fit mb-4 flex flex-col gap-4 border border-gray-200 p-4 rounded-lg bg-gray-50">
           <label className="text-xs font-medium text-gray-600">Search</label>
           <input
             type="text"
@@ -228,10 +278,10 @@ export default function VendorList({
             <option>Ghana</option>
           </select> */}
 
-          <label className="text-xs font-medium text-gray-600">
-            Kyc Status
-          </label>
-          <select
+          {/* <label className="text-xs font-medium text-gray-600">
+            Kyc Status */}
+          {/* </label> */}
+          {/* <select
             value={kyc}
             onChange={(e) => setKyc(e.target.value)}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -242,7 +292,7 @@ export default function VendorList({
             <option value="Unverified">Unverified</option>
             <option value="Suspended">Suspended</option>
             <option value="Deleted">Deleted</option>
-          </select>
+          </select> */}
 
           {/* <label className="text-xs font-medium text-gray-600">Document Missing</label>
           <select className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-black/20">
@@ -319,12 +369,12 @@ export default function VendorList({
                 setKyc("Any");
 
                 // 2. Call onApplyFilters and pass the cleared values
-                //    explicitly to ensure the filter runs instantly with the reset data.
+                //    explicitly to ensure the filter runs instantly with the reset data.
                 onApplyFilters({
                   search: "",
                   businessType: "Any",
                   kyc: "Any",
-                   resetPage: false,
+                  resetPage: false,
                 });
               }}
             >
@@ -402,15 +452,15 @@ export default function VendorList({
                     >
                       <td className="py-3 px-4">
                         <Link
-                            href={`/application-review/${vendor?._id}`}>
-                                   {vendor.business_name}
-                            </Link>
-                      
-                        </td>
+                          href={`/application-review/${vendor?._id}`}
+                        >
+                          {vendor.business_name}
+                        </Link>
+                      </td>
                       <td className="py-3 px-4">
                         {vendor.is_business_verified &&
-                        vendor.is_identity_verified &&
-                        vendor.is_bank_information_verified
+                          vendor.is_identity_verified &&
+                          vendor.is_bank_information_verified
                           ? "Verified"
                           : "Unverified"}
                       </td>
@@ -431,13 +481,23 @@ export default function VendorList({
                       <td className="py-3 px-4">
                         <span
                           className={`px-3 py-1 text-xs font-medium rounded-md 
-                                ${
-                                  vendor.is_active
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-orange-100 text-orange-700"
-                                }`}
+                              ${
+                                vendor.is_deleted
+                                ? "bg-red-100 text-red-700"
+                                : vendor.is_suspended
+                                ? "bg-yellow-100 text-yellow-700"
+                                : vendor.is_active
+                                ? "bg-green-100 text-green-700"
+                                : "bg-orange-100 text-orange-700"
+                              }`}
                         >
-                          {vendor.is_active ? "Active" : "Inactive"}
+                          {vendor.is_deleted
+                            ? "Deleted"
+                            : vendor.is_suspended
+                            ? "Suspended"
+                            : vendor.is_active
+                            ? "Active"
+                            : "Inactive"}
                         </span>
                       </td>
                       <td className="py-3 px-4">
@@ -448,7 +508,7 @@ export default function VendorList({
                           >
                             View
                           </Link>
-                          {!vendor.is_suspended && (
+                          {!vendor.is_suspended && !vendor.is_deleted && ( // Only show Suspend if not already suspended or deleted
                             <button
                               onClick={() =>
                                 handleSuspendVendor(
@@ -465,7 +525,7 @@ export default function VendorList({
                             </button>
                           )}
 
-                          {vendor.is_suspended && (
+                          {vendor.is_suspended && ( // Only show Revoke if suspended
                             <button
                               onClick={() =>
                                 handleRevoke(vendor._id, vendor.business_name)
