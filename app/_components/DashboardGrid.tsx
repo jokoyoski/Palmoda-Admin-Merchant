@@ -29,7 +29,9 @@ function DashboardGrid() {
     },
     {
       text: "TOTAL REVENUE (MTD)",
-      keyword: `₦${data?.total_revenue.toLocaleString()}`,
+      keyword: data?.total_revenue
+        ? `₦${data.total_revenue.toLocaleString()}`
+        : "₦0",
       percentage: "12%",
       icon: <BsGraphUp color="black" size={20} />,
     },
