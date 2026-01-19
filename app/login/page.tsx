@@ -7,7 +7,6 @@ import { Button } from "@heroui/button";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 
 function Page() {
-  const [showForm, setShowForm] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,33 +33,16 @@ function Page() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="bg-white min-h-screen flex flex-col text-center text-black">
-      {/* Top header */}
-      <h1 className="text-[19px] uppercase mt-4">Palmoda</h1>
+    <div className="bg-white min-h-screen flex items-center justify-center text-center text-black px-4">
+      <div className="w-full max-w-[420px] flex flex-col items-center gap-6">
+        {/* Top header */}
+        <h1 className="text-[19px] uppercase">Palmoda</h1>
 
-      {/* Center section */}
-      <div className="flex flex-col flex-1 items-center justify-center gap-6">
-        <h2 className="text-3xl text-gray-700 font-semibold">Log in</h2>
+        {/* Center section */}
+        <div className="w-full flex flex-col items-center gap-6">
+          <h2 className="text-3xl text-gray-700 font-semibold">Log in</h2>
 
-        <div className="flex items-center justify-center gap-5">
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-black hidden md:block text-white text-[18px] font-medium py-2 px-2"
-          >
-            Palmoda Dashboard
-          </button>
-
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-black hidden md:block text-white text-[18px] font-medium py-2 px-2"
-          >
-            Merchant Dashboard
-          </button>
-        </div>
-
-        {/* Login form (appears below on click) */}
-        {showForm && (
-          <div className="w-full max-w-[380px] mt-6 p-6 border rounded-xl shadow-md animate-slideDown">
+          <div className="w-full p-6 border rounded-xl shadow-md animate-slideDown">
             <h3 className="text-xl font-semibold text-gray-800 mb-4">Login</h3>
 
             <form onSubmit={handleLogin} className="flex flex-col gap-4">
@@ -100,7 +82,7 @@ function Page() {
               </button>
             </form>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Animation */}

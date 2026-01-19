@@ -13,6 +13,14 @@ export default function ProtectedRoute({ children }) {
     }
   }, [loading, isAuthenticated]);
 
+  if (!loading && !isAuthenticated) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <p className="text-gray-500 text-sm">Redirecting to login...</p>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
