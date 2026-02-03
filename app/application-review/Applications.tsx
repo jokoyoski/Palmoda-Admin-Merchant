@@ -15,6 +15,12 @@ import Link from "next/link";
 import { getAllVendorMessages, sendMessage } from "../_lib/message";
 import { useRouter } from "next/navigation";
 import { FaArrowLeft, FaEye, FaFilePdf } from "react-icons/fa";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface ApplicationsProps {
   vendor: Vendor | null;
@@ -25,11 +31,9 @@ interface ApplicationsProps {
 
 function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
-  const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
-
-  useEffect(() => {
-    setIsPdfViewerOpen(false);
-  }, [selectedDoc]);
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [docError, setDocError] = useState<string | null>(null);
 
   // --- LOADING STATES ---
   const [verifyingBusiness, setVerifyingBusiness] = useState(false);
@@ -266,6 +270,28 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
     } finally {
       setSending(false);
     }
+  };
+
+  const isPDF = (url: string) => {
+    return url.toLowerCase().endsWith('.pdf') || url.includes('pdf');
+  };
+
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setPageNumber(1);
+    setDocError(null);
+  };
+
+  const onDocumentLoadError = (error: Error) => {
+    console.error('Error loading document:', error);
+    setDocError('Failed to load document');
+  };
+
+  const closeDocumentViewer = () => {
+    setSelectedDoc(null);
+    setNumPages(0);
+    setPageNumber(1);
+    setDocError(null);
   };
 
   return (
@@ -626,56 +652,86 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
 
       {/* Document Viewer Popup */}
       {selectedDoc && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded-md max-w-lg w-full shadow-lg relative">
-            <h2 className="text-black text-sm font-semibold mb-3">
-              Document Preview
-            </h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-4 rounded-md max-w-4xl w-full max-h-[90vh] shadow-lg relative flex flex-col">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-black text-sm font-semibold">
+                Document Preview
+              </h2>
+              <a
+                href={selectedDoc}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:underline"
+              >
+                Open in New Tab
+              </a>
+            </div>
 
-            {(() => {
-              const normalizedUrl = selectedDoc.split(/[?#]/)[0].toLowerCase();
-              const isPdf = normalizedUrl.endsWith(".pdf");
-
-              if (isPdf) {
-                if (!isPdfViewerOpen) {
-                  return (
-                    <button
-                      type="button"
-                      onClick={() => setIsPdfViewerOpen(true)}
-                      className="w-full h-[40vh] rounded border border-gray-200 flex flex-col items-center justify-center gap-3 hover:bg-gray-50 transition"
-                      title="Click to view PDF"
-                    >
-                      <FaFilePdf className="text-red-600 text-5xl" />
-                      <span className="text-xs font-semibold text-gray-700 uppercase">
-                        Click to view PDF
+            <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-50 rounded">
+              {docError ? (
+                <div className="text-center p-8">
+                  <p className="text-red-600 mb-4">{docError}</p>
+                  <a
+                    href={selectedDoc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    Try opening in new tab
+                  </a>
+                </div>
+              ) : isPDF(selectedDoc) ? (
+                <div className="flex flex-col items-center">
+                  <Document
+                    file={selectedDoc}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    onLoadError={onDocumentLoadError}
+                    loading={
+                      <div className="text-gray-500 p-8">Loading PDF...</div>
+                    }
+                  >
+                    <Page
+                      pageNumber={pageNumber}
+                      renderTextLayer={true}
+                      renderAnnotationLayer={true}
+                      className="max-w-full"
+                    />
+                  </Document>
+                  {numPages > 1 && (
+                    <div className="flex items-center gap-4 mt-4">
+                      <button
+                        onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+                        disabled={pageNumber <= 1}
+                        className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      <span className="text-xs text-gray-600">
+                        Page {pageNumber} of {numPages}
                       </span>
-                    </button>
-                  );
-                }
-
-                return (
-                  <iframe
-                    src={selectedDoc}
-                    title="Document"
-                    className="w-full h-[70vh] rounded border border-gray-200"
-                  />
-                );
-              }
-
-              return (
+                      <button
+                        onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))}
+                        disabled={pageNumber >= numPages}
+                        className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <img
                   src={selectedDoc}
                   alt="Document"
-                  className="w-full max-h-[70vh] object-contain rounded"
+                  className="max-w-full max-h-[70vh] object-contain rounded"
+                  onError={() => setDocError('Failed to load image')}
                 />
-              );
-            })()}
+              )}
+            </div>
 
             <button
-              onClick={() => {
-                setSelectedDoc(null);
-                setIsPdfViewerOpen(false);
-              }}
+              onClick={closeDocumentViewer}
               className="mt-4 w-full py-2 text-sm border border-black text-black uppercase hover:bg-gray-100 transition duration-150"
             >
               Close
