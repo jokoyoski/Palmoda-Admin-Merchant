@@ -15,12 +15,11 @@ import Link from "next/link";
 import { getAllVendorMessages, sendMessage } from "../_lib/message";
 import { useRouter } from "next/navigation";
 import { FaArrowLeft, FaEye, FaFilePdf } from "react-icons/fa";
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
+import dynamic from "next/dynamic";
 
-// Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+const PdfDocumentViewer = dynamic(() => import("./PdfDocumentViewer"), {
+  ssr: false,
+});
 
 interface ApplicationsProps {
   vendor: Vendor | null;
@@ -683,21 +682,12 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
                 </div>
               ) : isPDF(selectedDoc) ? (
                 <div className="flex flex-col items-center">
-                  <Document
+                  <PdfDocumentViewer
                     file={selectedDoc}
+                    pageNumber={pageNumber}
                     onLoadSuccess={onDocumentLoadSuccess}
                     onLoadError={onDocumentLoadError}
-                    loading={
-                      <div className="text-gray-500 p-8">Loading PDF...</div>
-                    }
-                  >
-                    <Page
-                      pageNumber={pageNumber}
-                      renderTextLayer={true}
-                      renderAnnotationLayer={true}
-                      className="max-w-full"
-                    />
-                  </Document>
+                  />
                   {numPages > 1 && (
                     <div className="flex items-center gap-4 mt-4">
                       <button
