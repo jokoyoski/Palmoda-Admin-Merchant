@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { FiSearch, FiMenu, FiX, FiUserCheck, FiUsers } from "react-icons/fi";
 import { CiUser } from "react-icons/ci";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FiUserPlus,
   FiFileText,
@@ -24,6 +24,8 @@ function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [firstname, setfirstName] = useState("");
   const [lastname, setlastName] = useState("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const { user, logout } = useAuth();
 
@@ -31,6 +33,32 @@ function Header() {
     setfirstName(user?.first_name || "");
     setlastName(user?.last_name || "");
   }, [user]);
+
+  useEffect(() => {
+    if (!userMenuOpen) return;
+
+    const onPointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setUserMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [userMenuOpen]);
 
   if (pathname.includes("login")) return null;
 
@@ -73,11 +101,32 @@ function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <CiUser size={25} color="black" />
-            <h2 className="font-semibold text-black text-[15px]">
-             {firstname} {lastname}
-            </h2>
+          <div className="relative" ref={userMenuRef}>
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen((prev) => !prev)}
+              className="flex items-center gap-2"
+            >
+              <CiUser size={25} color="black" />
+              <h2 className="font-semibold text-black text-[15px]">
+                {firstname} {lastname}
+              </h2>
+            </button>
+
+            {userMenuOpen && (
+              <div className="absolute top-full right-0 mt-2 w-full min-w-full rounded-md border border-gray-200 bg-white shadow-lg z-50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                >
+                  <FiLogOut /> Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>

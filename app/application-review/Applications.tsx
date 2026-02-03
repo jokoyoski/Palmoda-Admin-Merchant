@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import { getAllVendorMessages, sendMessage } from "../_lib/message";
 import { useRouter } from "next/navigation";
-import { FaArrowLeft, FaEye } from "react-icons/fa";
+import { FaArrowLeft, FaEye, FaFilePdf } from "react-icons/fa";
 
 interface ApplicationsProps {
   vendor: Vendor | null;
@@ -25,6 +25,11 @@ interface ApplicationsProps {
 
 function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
+  const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
+
+  useEffect(() => {
+    setIsPdfViewerOpen(false);
+  }, [selectedDoc]);
 
   // --- LOADING STATES ---
   const [verifyingBusiness, setVerifyingBusiness] = useState(false);
@@ -627,14 +632,50 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
               Document Preview
             </h2>
 
-            <img
-              src={selectedDoc}
-              alt="Document"
-              className="w-full max-h-[70vh] object-contain rounded"
-            />
+            {(() => {
+              const normalizedUrl = selectedDoc.split(/[?#]/)[0].toLowerCase();
+              const isPdf = normalizedUrl.endsWith(".pdf");
+
+              if (isPdf) {
+                if (!isPdfViewerOpen) {
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setIsPdfViewerOpen(true)}
+                      className="w-full h-[40vh] rounded border border-gray-200 flex flex-col items-center justify-center gap-3 hover:bg-gray-50 transition"
+                      title="Click to view PDF"
+                    >
+                      <FaFilePdf className="text-red-600 text-5xl" />
+                      <span className="text-xs font-semibold text-gray-700 uppercase">
+                        Click to view PDF
+                      </span>
+                    </button>
+                  );
+                }
+
+                return (
+                  <iframe
+                    src={selectedDoc}
+                    title="Document"
+                    className="w-full h-[70vh] rounded border border-gray-200"
+                  />
+                );
+              }
+
+              return (
+                <img
+                  src={selectedDoc}
+                  alt="Document"
+                  className="w-full max-h-[70vh] object-contain rounded"
+                />
+              );
+            })()}
 
             <button
-              onClick={() => setSelectedDoc(null)}
+              onClick={() => {
+                setSelectedDoc(null);
+                setIsPdfViewerOpen(false);
+              }}
               className="mt-4 w-full py-2 text-sm border border-black text-black uppercase hover:bg-gray-100 transition duration-150"
             >
               Close
