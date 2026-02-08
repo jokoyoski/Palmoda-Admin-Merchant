@@ -11,6 +11,7 @@ import {
   FiGrid,
   FiShoppingCart,
   FiDollarSign,
+  FiRepeat,
   FiSettings,
   FiLogOut,
 } from "react-icons/fi";
@@ -67,6 +68,7 @@ function Header() {
     { href: "/product-review-queue", label: "Product Review Queue", icon: <MdOutlineRateReview /> },
     { href: "/vendor-management", label: "Vendor Management", icon: <FiUsers /> },
     { href: "/", label: "Analytics", icon: <BsGraphUp /> },
+    { href: "/subscriptions", label: "Subscriptions", icon: <FiRepeat /> },
     { href: "/settings", label: "Settings", icon: <FiSettings /> },
   ];
 

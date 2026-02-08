@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { FiUserCheck, FiUsers, FiSettings, FiLogOut } from "react-icons/fi";
+import { FiUserCheck, FiUsers, FiSettings, FiLogOut, FiRepeat } from "react-icons/fi";
 import { FaBell, FaMoneyBill } from "react-icons/fa";
 import { MdOutlineRateReview } from "react-icons/md";
 import { usePathname } from "next/navigation";
@@ -84,6 +84,7 @@ function Sidebar() {
     },
     { href: "/", label: "Analytics", icon: <BsGraphUp /> },
     { href: "/payouts", label: "Payouts", icon: <FaMoneyBill /> },
+    { href: "/subscriptions", label: "Subscriptions", icon: <FiRepeat /> },
     // {href: "/notifications", label: "Notifications", icon: <FaBell />},
     { href: "/settings", label: "Settings", icon: <FiSettings /> },
   ];
