@@ -103,7 +103,7 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
       isRequiredForVerification: true,
     },
     {
-      label: "Bank Statement",
+      label: "Utility Bill",
       key: "bank_statement",
       isRequiredForVerification: true,
     },
@@ -333,7 +333,7 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
         <hr className="text-gray-200 mt-1 mb-2" />
 
         <div className="flex gap-4 px-4 py-2">
-          <div className="border border-gray-200 py-3 px-4 w-[300px] flex flex-col gap-3.5">
+          <div className="border border-gray-200 py-3 px-4 w-[300px] flex flex-col gap-3.5 overflow-hidden">
             <h1 className="text-black text-sm font-semibold">
               Brand Information
             </h1>
@@ -350,15 +350,15 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
                 />
               )}
 
-              <div>
+              <div className="min-w-0">
                 <h1 className="text-black text-sm font-semibold mb-0.5">
                   {vendor?.brand?.brand_name || "N/A"}
                 </h1>
-                <p className="text-gray-500 text-xs mb-0.5">
+                <p className="text-gray-500 text-xs mb-0.5 break-words whitespace-normal">
                   {vendor?.brand?.brand_description ||
                     "No description provided"}
                 </p>
-                <p className="text-gray-500 text-xs mt-1.5 mb-0.5">
+                <p className="text-gray-500 text-xs mt-1.5 mb-0.5 break-words whitespace-normal">
                   {vendor?.kyc_compliance?.city || "N/A"}
                 </p>
               </div>
@@ -372,7 +372,7 @@ function Applications({ vendor, id, products, setVendor }: ApplicationsProps) {
             </div>
             <div className="flex flex-col gap-1px">
               <p className="text-gray-500 text-xs mb-0.5">Website</p>
-              <h2 className="text-black text-sm">
+              <h2 className="text-black text-sm break-all whitespace-normal">
                 {vendor?.brand?.website_url || "N/A"}
               </h2>
             </div>
